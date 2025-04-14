@@ -1,26 +1,60 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Image, Dimensions } from 'react-native';
 
-const Challenges = () => {
+const data = Array(10).fill({ title: 'test' });
+
+export default function Challenges() {
+  const screenWidth = Dimensions.get('window').width;
+  const itemSize = (screenWidth - 60) / 2;
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Challenges</Text>
+      <Text style={styles.header}>Challenges</Text>
+
+      <FlatList
+        data={data}
+        keyExtractor={(_, index) => index.toString()}
+        numColumns={2}
+        columnWrapperStyle={styles.row}
+        contentContainerStyle={{ paddingBottom: 80 }}
+        renderItem={({ item }) => (
+          <View style={[styles.card, { width: itemSize, height: itemSize + 30 }]}>
+            <View style={styles.imagePlaceholder} />
+            <Text style={styles.title}>{item.title}</Text>
+          </View>
+        )}
+      />
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
+    paddingTop: 20,
+    paddingHorizontal: 20,
     flex: 1,
-    justifyContent: 'center',
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  row: {
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  card: {
     alignItems: 'center',
-    padding: 20
+  },
+  imagePlaceholder: {
+    width: '100%',
+    aspectRatio: 1,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
   },
   title: {
-    fontSize: 20,
-    marginBottom: 20,
-    color: '#1a365d'
-  }
+    marginTop: 6,
+    fontWeight: 'bold',
+    textAlign: 'left',
+    alignSelf: 'flex-start',
+  },
 });
-
-export default Challenges;

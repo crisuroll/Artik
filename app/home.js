@@ -13,7 +13,6 @@ const Home = () => {
     };
     
     loadUser();
-    
     // Datos de ejemplo
     setPosts([
       {
@@ -43,6 +42,15 @@ const Home = () => {
         reposts: 92,
         shares: 27
       },
+      {
+        id: '4',
+        title: 'Welcome to Artik!',
+        username: 'crisuroll',
+        imageUrl: '',
+        likes: 345,
+        reposts: 92,
+        shares: 27
+      },
     ]);
   }, []);
 
@@ -63,14 +71,14 @@ const Home = () => {
   };
 
   const renderPost = ({ item }) => (
-    <View>
-      <View style={styles.postContainer}>
-        <TouchableOpacity style={styles.menuButton} onPress={() => setMenuVisible(!menuVisible)}>
+    <View id='post-container'>
+      <View id='post-content' style={styles.postContainer}>
+        <TouchableOpacity id='menu-button' style={styles.menuButton} onPress={() => setMenuVisible(!menuVisible)}>
           <Text style={styles.menuText}>⋮</Text>
         </TouchableOpacity>
 
         {menuVisible && (
-        <View style={styles.menuContainer}>
+        <View id='menu-container' style={styles.menuContainer}>
           <TouchableOpacity onPress={() => handleOption('Denunciar')}>
             <Text style={styles.menuItem}>Denunciar</Text>
           </TouchableOpacity>
@@ -80,13 +88,13 @@ const Home = () => {
         </View>
         )}
       
-        <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
+        <Image id='post-image' source={{ uri: item.imageUrl }} style={styles.postImage} />
       </View>
 
-      <View style={{flex: 1, flexDirection: 'row'}}>
+      <View id='interaction-container' style={{flex: 1, flexDirection: 'row'}}>
         <Text style={styles.postTitle}>{item.title}</Text>
         
-        <View style={styles.interactionContainer}>
+        <View id='interaction-options' style={styles.interactionContainer}>
           <TouchableOpacity onPress={() => handleInteraction('likes', item.id)}>
             <Text style={styles.interactionButton}>👍 {item.likes}</Text>
           </TouchableOpacity>
@@ -100,7 +108,6 @@ const Home = () => {
           </TouchableOpacity>
         </View>
       </View>
-
     </View>
   );
 
@@ -118,7 +125,16 @@ const Home = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1
+    flex: 1,
+    maxWidth: 800,
+    width: '100%',
+    alignSelf: 'center',
+    '@media (min-width: 768px)': {
+      paddingHorizontal: 40,
+    },
+    '@media (min-width: 1024px)': {
+      maxWidth: 1000,
+    },
   },
 
   listContent: {
@@ -128,6 +144,10 @@ const styles = StyleSheet.create({
   postContainer: {
     marginVertical: 15,
     padding: 15,
+    '@media (min-width: 768px)': {
+      marginVertical: 20,
+      padding: 20,
+    },
     borderRadius: 10,
     backgroundColor: '#f8f9fa',
     shadowColor: '#000',

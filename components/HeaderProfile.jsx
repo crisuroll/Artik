@@ -11,7 +11,8 @@ const HeaderProfile = ({ toggleMenu }) => {
           onPress={toggleMenu}
         >
         </Pressable>
-        <Text style={styles.headerTitle}>Para ti</Text>
+        {//<Text style={styles.headerTitle}>Para ti</Text>
+        }
       </View>
     </View>
   );
@@ -19,7 +20,6 @@ const HeaderProfile = ({ toggleMenu }) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
     paddingTop: 30

@@ -1,10 +1,11 @@
 import { Slot, useRouter, usePathname } from "expo-router";
-import { View, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator, StyleSheet, useWindowDimensions } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 import NavBarMobile from '../components/Navbar-Mobile';
 import HeaderProfile from "../components/HeaderProfile";
 import BarMenu from "../components/BarMenu";
+import DesktopSidebar from '../components/DesktopSidebar';
 
 export default function Layout() {
   const router = useRouter();
@@ -13,6 +14,9 @@ export default function Layout() {
 
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const toggleMenu = () => setIsMenuVisible(!isMenuVisible);
+
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 1024;
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -43,15 +47,32 @@ export default function Layout() {
 
   const isAuthScreen = pathname === "/login" || pathname === "/register";
   return (
-    <View style={{ flex: 1, backgroundColor: "#f6fffe" }}>
-      {!isAuthScreen && <HeaderProfile toggleMenu={toggleMenu} />}
-      <Slot />
-      {!isAuthScreen && (
-        <View>
-          <NavBarMobile />
+    <View style={{ flex: 1, backgroundColor: "#f6fffe", flexDirection: isDesktop ? 'row' : 'column' }}>
+      {isDesktop && (
+        <View style={styles.desktopSidebar}>
+          <DesktopSidebar />
         </View>
       )}
-      {isMenuVisible && <BarMenu onClose={toggleMenu} />}
+
+      <View style={{ flex: 1 }}>
+        {!isAuthScreen && pathname !== "/search1" && !isDesktop && <HeaderProfile toggleMenu={toggleMenu} />}
+        <Slot />
+        {!isAuthScreen && !isDesktop && (
+          <View>
+            <NavBarMobile />
+          </View>
+        )}
+        {isMenuVisible && <BarMenu onClose={toggleMenu} />}
+      </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  desktopSidebar: {
+    width: 250,
+    borderRightWidth: 1,
+    borderRightColor: '#e0e0e0',
+    paddingTop: 30,
+  },
+});

@@ -1,4 +1,4 @@
-import { View, Text, TextInput, StyleSheet, Pressable, Alert } from 'react-native';
+import { View, StyleSheet, Pressable, Alert } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { Link } from 'expo-router';
 
@@ -106,6 +106,9 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 4,
         elevation: 5,
+        '@media (min-width: 768px)': {
+            display: 'none',
+        },
     },
     iconContainer: {
         flex: 1,
