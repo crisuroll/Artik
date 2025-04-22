@@ -1,27 +1,38 @@
-import React, { useEffect } from 'react';
-import { View, Text, Pressable, Animated, Dimensions, StyleSheet } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, Pressable, Animated, Dimensions, StyleSheet, Platform } from 'react-native';
+import { supabase } from '../supabase/supabaseClient';
 import { useRouter } from 'expo-router';
 
 const BarMenu = ({ onClose }) => {
   const router = useRouter();
   const { width } = Dimensions.get('window');
-  const translateX = new Animated.Value(-width * 0.4);
-  const fadeAnim = new Animated.Value(0);
+  const translateX = useRef(new Animated.Value(-width * 0.4)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [userEmail, setUserEmail] = useState(null);
+  const isWeb = Platform.OS === 'web';
 
   useEffect(() => {
     Animated.parallel([
       Animated.timing(translateX, {
         toValue: 0,
         duration: 300,
-        useNativeDriver: true,
+        useNativeDriver: !isWeb,
       }),
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 200,
-        useNativeDriver: true,
-      })
+        useNativeDriver: !isWeb,
+      }),
     ]).start();
+
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session?.user) {
+        setUserEmail(data.session.user.email);
+      }
+    };
+
+    fetchUser();
   }, []);
 
   const handleClose = () => {
@@ -29,55 +40,54 @@ const BarMenu = ({ onClose }) => {
       Animated.timing(translateX, {
         toValue: -width * 0.4,
         duration: 250,
-        useNativeDriver: true,
+        useNativeDriver: !isWeb,
       }),
       Animated.timing(fadeAnim, {
         toValue: 0,
         duration: 150,
-        useNativeDriver: true,
-      })
+        useNativeDriver: !isWeb,
+      }),
     ]).start(() => onClose());
   };
 
+  const handleMyProfile = () => {
+    router.push('/my-user');
+  };
+
   const handleLogout = async () => {
-    await AsyncStorage.removeItem('user');
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error("Error trying to log out:", error.message);
+      return;
+    }
+
     router.replace('/');
     handleClose();
   };
 
   return (
     <View style={styles.menuContainer}>
-      <Animated.View 
-        style={[
-          styles.backgroundPressable, 
-          { opacity: fadeAnim }
-        ]}
-      >
-        <Pressable 
-          style={{ flex: 1 }} 
-          onPress={handleClose} 
-        />
+      <Animated.View style={[styles.backgroundPressable, { opacity: fadeAnim }]}>
+        <Pressable style={{ flex: 1 }} onPress={handleClose} />
       </Animated.View>
 
-      <Animated.View 
+      <Animated.View
         style={[
-          styles.menuContent, 
-          { 
+          styles.menuContent,
+          {
             transform: [{ translateX }],
-            width: width * 0.4 
-          }
+            width: width * 0.4,
+          },
         ]}
       >
         <Text style={styles.menuTitle}>Mi Perfil</Text>
-        
-        <Pressable style={styles.menuItem}>
+
+        <Pressable style={styles.menuItem} onPress={handleMyProfile}>
           <Text style={styles.menuText}>Configuración</Text>
         </Pressable>
-        
-        <Pressable 
-          style={styles.menuItem} 
-          onPress={handleLogout}
-        >
+
+        <Pressable style={styles.menuItem} onPress={handleLogout}>
           <Text style={styles.menuText}>Cerrar Sesión</Text>
         </Pressable>
       </Animated.View>

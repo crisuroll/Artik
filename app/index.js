@@ -1,33 +1,49 @@
-import { useEffect, useState } from "react";
-import { useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { View, Text, ActivityIndicator } from "react-native";
+// app/index.jsx
+import React, { useEffect, useState } from 'react';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from '../supabase/supabaseClient';
 
-export default function Index() {
+const Index = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkUser = async () => {
-      const user = await AsyncStorage.getItem("user");
-      if (user) {
-        router.replace("/home");
-      } else {
-        router.replace("/login");
+    const checkSession = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+
+        if (error || !data.session) {
+          router.push('/login');
+        } else {
+          await AsyncStorage.setItem('user', JSON.stringify(data.session.user));
+          router.push('/home');
+        }
+      } catch (e) {
+        console.error('Error trying to verify session:', e);
+        router.push('/login');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
-    checkUser();
+
+    checkSession();
   }, []);
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color="#2f4f75" />
-        <Text>Cargando...</Text>
-      </View>
-    );
-  }
+  return (
+    <View style={styles.container}>
+      <ActivityIndicator size="large" color="#70c0b7" />
+    </View>
+  );
+};
 
-  return null;
-}
+export default Index;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});

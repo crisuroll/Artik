@@ -1,18 +1,13 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Image, Pressable, StyleSheet } from 'react-native';
 
-const HeaderProfile = ({ toggleMenu }) => {
-
+const HeaderProfile = ({ toggleMenu, avatarUrl }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Pressable 
-          style={styles.profileButton} 
-          onPress={toggleMenu}
-        >
+        <Pressable style={styles.profileButton} onPress={toggleMenu}>
+          <Image source={{ uri: avatarUrl }} style={styles.avatar} />
         </Pressable>
-        {//<Text style={styles.headerTitle}>Para ti</Text>
-        }
       </View>
     </View>
   );
@@ -22,7 +17,7 @@ const styles = StyleSheet.create({
   container: {
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
-    paddingTop: 30
+    paddingTop: 30,
   },
   header: {
     flexDirection: 'row',
@@ -33,15 +28,14 @@ const styles = StyleSheet.create({
   },
   profileButton: {
     borderRadius: 30,
-    backgroundColor: 'black',
     height: 50,
     width: 50,
+    overflow: 'hidden',
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1a365d',
-    textAlign: 'right',
+  avatar: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
 });
 

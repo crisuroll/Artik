@@ -1,32 +1,51 @@
 import { Slot, useRouter, usePathname } from "expo-router";
 import { View, ActivityIndicator, StyleSheet, useWindowDimensions } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
+import { supabase } from "../supabase/supabaseClient";
 import NavBarMobile from '../components/Navbar-Mobile';
 import HeaderProfile from "../components/HeaderProfile";
 import BarMenu from "../components/BarMenu";
 import DesktopSidebar from '../components/DesktopSidebar';
 
 export default function Layout() {
+
   const router = useRouter();
   const pathname = usePathname();
-  const [loading, setLoading] = useState(true);
-
-  const [isMenuVisible, setIsMenuVisible] = useState(false);
   const toggleMenu = () => setIsMenuVisible(!isMenuVisible);
-
+  const defaultAvatar = "https://ovbhqtvacxgkarasaakr.supabase.co/storage/v1/object/public/avatar//default.png";
   const { width } = useWindowDimensions();
   const isDesktop = width >= 1024;
+  const [loading, setLoading] = useState(true);
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(null);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const user = await AsyncStorage.getItem("user");
+        const { data, error } = await supabase.auth.getSession();
+        const user = data?.session?.user;
+
         if (user) {
-          router.replace("/home");
-        } else if (pathname !== "/") {
-          router.replace("/");
+          if (pathname === "/login" || pathname === "/register") {
+            router.push("/home");
+          }
+          console.log(user.id);
+          const { data: perfil } = await supabase
+            .from("profiles")
+            .select("avatar_url")
+            .eq("id", user.id)
+            .single();
+  
+          if (perfil && perfil.avatar_url) {
+            setAvatarUrl(perfil.avatar_url);
+          } else {
+            setAvatarUrl(defaultAvatar);
+          }
+            
+        } else if (!user && pathname !== "/login" && pathname !== "/register") {
+          router.push("/login");
         }
+
       } catch (error) {
         console.error("Error verificando autenticación:", error);
       } finally {
@@ -35,7 +54,7 @@ export default function Layout() {
     };
 
     checkAuth();
-  }, []);
+  }, [pathname]);
 
   if (loading) {
     return (
@@ -46,6 +65,8 @@ export default function Layout() {
   }
 
   const isAuthScreen = pathname === "/login" || pathname === "/register";
+  const main = pathname === "/home" || pathname === "/challenges" || pathname === "/gallery";
+
   return (
     <View style={{ flex: 1, backgroundColor: "#f6fffe", flexDirection: isDesktop ? 'row' : 'column' }}>
       {isDesktop && (
@@ -55,7 +76,7 @@ export default function Layout() {
       )}
 
       <View style={{ flex: 1 }}>
-        {!isAuthScreen && pathname !== "/search1" && !isDesktop && <HeaderProfile toggleMenu={toggleMenu} />}
+        {main && !isDesktop && <HeaderProfile toggleMenu={toggleMenu} avatarUrl={avatarUrl} />}
         <Slot />
         {!isAuthScreen && !isDesktop && (
           <View>
