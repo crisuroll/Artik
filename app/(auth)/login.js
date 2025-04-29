@@ -1,47 +1,17 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Pressable, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { supabase } from '../../supabase/supabaseClient';
+import { useLogin } from '../../hooks/useLogin';
 
 export default function Login () {
   const router = useRouter();
+  const { login, loading } = useLogin();
+
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = async () => {
-    if (!identifier || !password) {
-      Alert.alert("Error", "You must fill all fields.");  
-      return;
-    }
-
-    let emailToUse = identifier;
-
-    if (!identifier.includes('@')) {
-      const { data, error } = await supabase
-        .from('users')
-        .select('email')
-        .eq('username', identifier)
-        .single();
-
-      if (error || !data) {
-        Alert.alert("Error", "Username not found.");
-        return;
-      }
-
-      emailToUse = data.email;
-    }
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: emailToUse,
-      password,
-    });
-
-    if (error) {
-      Alert.alert("Error trying to log in.", error.message);
-      return;
-    }
-
-    router.push("/home");
+  const handleLogin = () => {
+    login(identifier, password);
   };
 
   return (

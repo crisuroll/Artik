@@ -12,7 +12,6 @@ export default function Layout() {
   const router = useRouter();
   const pathname = usePathname();
   const toggleMenu = () => setIsMenuVisible(!isMenuVisible);
-  const defaultAvatar = "https://ovbhqtvacxgkarasaakr.supabase.co/storage/v1/object/public/avatar//default.png";
   const { width } = useWindowDimensions();
   const isDesktop = width >= 1024;
   const [loading, setLoading] = useState(true);
@@ -29,17 +28,14 @@ export default function Layout() {
           if (pathname === "/login" || pathname === "/register") {
             router.push("/home");
           }
-          console.log(user.id);
           const { data: perfil } = await supabase
-            .from("profiles")
+            .from("users")
             .select("avatar_url")
             .eq("id", user.id)
             .single();
   
           if (perfil && perfil.avatar_url) {
             setAvatarUrl(perfil.avatar_url);
-          } else {
-            setAvatarUrl(defaultAvatar);
           }
             
         } else if (!user && pathname !== "/login" && pathname !== "/register") {

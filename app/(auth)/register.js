@@ -2,44 +2,19 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Pressable, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../supabase/supabaseClient';
+import { useRegister } from '../../hooks/useRegister';
 
 export default function Register() {
   const router = useRouter();
+  const { register, loading } = useRegister();
+
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const handleRegister = async () => {
-    if (!email || !password || !confirmPassword) {
-      Alert.alert("Error", "You must fill all fields.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      Alert.alert("Error", "Passwords don't match.");
-      return;
-    }
-
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password
-    })
-    
-    if (error) {
-      Alert.alert("Error trying to sign up.", error.message)
-      return
-    }
-
-    await supabase.from('profiles').insert([
-      {
-        id: data.user.id,
-        username: username,
-        email: email,
-        avatar_url: null,
-        bio: ''
-      }
-    ])
+  const handleRegister = () => {
+    register(username, email, password, confirmPassword);
   };
 
   return (
