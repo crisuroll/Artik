@@ -5,7 +5,10 @@ export const loadUser = async () => {
     const { data, error } = await supabase.auth.getUser();
     if (error) throw error;
     if (data?.user) {
-      return data.user.user_metadata.username || data.user.email;
+      return {
+        username: data.user.user_metadata.username || data.user.email,
+        userId: data.user.id
+      };
     }
     return null;
   } catch (err) {

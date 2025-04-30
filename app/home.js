@@ -5,20 +5,21 @@ import { useRouter } from 'expo-router';
 import { loadTimeline } from '../services/timeline';
 import { loadUser } from '../services/getUser';
 import { getImageSize } from '../services/getImages';
-import { likePost, repostPost, commentPost } from '../services/interactions';
+import { likePost, repostPost, commentPost, interactWithPost } from '../services/interactions';
 
 export default function Home() {
   const [username, setUsername] = useState('');
+  const [userId, setUserId] = useState(null);
   const [posts, setPosts] = useState([]);
   const router = useRouter();
 
   useEffect(() => {
     const loadUserAndPosts = async () => {
-      const username = await loadUser();
-      if (username) setUsername(username);
-  
+      const user = await loadUser();
+      if (user?.username) setUsername(user.username);
+      if (user?.userId) setUserId(user.userId);
       const fetchedPosts = await loadTimeline();
-      const postsWithSizes = await Promise.all(
+      const getPosts = await Promise.all(
         fetchedPosts.map(async (post) => {
           if (post.imageUrl) {
             try {
@@ -31,41 +32,39 @@ export default function Home() {
           return post;
         })
       );
-  
-      setPosts(postsWithSizes);
+      setPosts(getPosts);
     };
-  
     loadUserAndPosts();
-  }, []);  
+  }, []);
 
   const handleInteraction = async (type, postId) => {
     try {
-      if (type === 'likes') {
-        await likePost(userId, postId);
-      } else if (type === 'reposts') {
-        await repostPost(userId, postId);
-      } else if (type === 'comments') {
-        await commentPost(userId, postId, 'Default comment');
-      }
-  
-      setPosts(prevPosts => prevPosts.map(post => {
-        if (post.id === postId) {
-          return { ...post, [type]: post[type] + 1 };
-        }
-        return post;
-      }));
+      if (!userId) return;
+      const result = await interactWithPost(type, userId, postId);
+      setPosts(prevPosts =>
+        prevPosts.map(post => {
+          if (post.id === postId) {
+            const currentValue = post[type] || 0;
+            return {
+              ...post,
+              [type]: result.toggled === 'added' ? currentValue + 1 : Math.max(currentValue - 1, 0),
+            };
+          }
+          return post;
+        })
+      );
   
     } catch (error) {
-      console.error(error);
+      console.error('Error al interactuar:', error);
     }
   };  
 
-  const [menuVisible, setMenuVisible] = useState(false);
+  const [activeMenuPostId, setActiveMenuPostId] = useState(null);
 
   const handleOption = (option) => {
     Alert.alert(option);
-    setMenuVisible(false);
-  };
+    setActiveMenuPostId(null);
+  };  
 
   const renderPost = ({ item }) => {
     const imageRatio = item.width && item.height ? item.width / item.height : 1.5;
@@ -81,12 +80,19 @@ export default function Home() {
               style={[styles.postImage, { aspectRatio: imageRatio }]}
             />
   
-            <TouchableOpacity id='menu-button' style={styles.menuButton} onPress={() => setMenuVisible(!menuVisible)}>
+            <TouchableOpacity
+              id="menu-button"
+              style={styles.menuButton}
+              onPress={() =>
+                setActiveMenuPostId(activeMenuPostId === item.id ? null : item.id)
+              }
+            >
               <Text style={styles.menuText}>⋮</Text>
             </TouchableOpacity>
+
   
-            {menuVisible && (
-              <View id='menu-container' style={styles.menuContainer}>
+            {activeMenuPostId === item.id && (
+              <View id="menu-container" style={styles.menuContainer}>
                 <TouchableOpacity onPress={() => handleOption('Denunciar')}>
                   <Text style={styles.menuItem}>Denunciar</Text>
                 </TouchableOpacity>

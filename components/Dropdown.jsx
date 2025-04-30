@@ -84,8 +84,8 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     flex: 1,
-    backgroundColor: "#000000",
-  },
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },  
   button: {
     height: 50,
     flexDirection: "row",

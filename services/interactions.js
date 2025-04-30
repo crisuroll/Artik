@@ -1,32 +1,44 @@
 import { supabase } from '../supabase/supabaseClient';
-import { v4 as uuidv4 } from 'uuid';
 
-export async function likePost(userId, postId) {
-  const { data, error } = await supabase
-    .from('likes')
-    .insert([{ user_id: userId, post_id: postId }])
-    .select();
+export async function interactWithPost(type, userId, postId) {
+  const tableMap = {
+    likes: 'likes',
+    reposts: 'reposts',
+    shares: 'shares',
+  };
 
-  if (error) throw error;
-  return data;
-}
+  const table = tableMap[type];
+  if (!table) throw new Error('Tipo de interacción no válido');
 
-export async function repostPost(userId, postId) {
-  const { data, error } = await supabase
-    .from('reposts')
-    .insert([{ user_id: userId, post_id: postId }])
-    .select();
+  const { data: existing, error: fetchError } = await supabase
+    .from(table)
+    .select('*')
+    .eq('user_id', userId)
+    .eq('post_id', postId)
+    .maybeSingle();
 
-  if (error) throw error;
-  return data;
-}
+  if (fetchError && fetchError.code !== 'PGRST116') {
+    throw fetchError;
+  }
 
-export async function commentPost(userId, postId, content) {
-  const { data, error } = await supabase
-    .from('comments')
-    .insert([{ id: uuidv4(), user_id: userId, post_id: postId, content }])
-    .select();
+  let data, error;
 
-  if (error) throw error;
-  return data;
+  if (existing) {
+    ({ error } = await supabase
+      .from(table)
+      .delete()
+      .eq('user_id', userId)
+      .eq('post_id', postId));
+
+    if (error) throw error;
+    return { toggled: 'removed' };
+  } else {
+    ({ data, error } = await supabase
+      .from(table)
+      .insert([{ user_id: userId, post_id: postId }])
+      .select());
+
+    if (error) throw error;
+    return { toggled: 'added', data };
+  }
 }
