@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import { Platform, View, Text, TouchableOpacity, StyleSheet, Image, ActivityIndicator } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../supabase/supabaseClient';
@@ -8,6 +8,34 @@ const UploadFile = ({ onUploadSuccess }) => {
   const [fileName, setFileName] = useState(null);
   const [previewUri, setPreviewUri] = useState(null);
   const [uploading, setUploading] = useState(false);
+
+  const procesarImagenConBackend = async (file) => {
+    let formData = new FormData();
+  
+    if (Platform.OS === 'web') {
+      const blob = await fetch(file.uri).then(res => res.blob());
+      formData.append('image', new File([blob], file.name, {
+        type: file.mimeType || 'image/jpeg',
+      }));
+    } else {
+      formData.append('image', {
+        uri: file.uri,
+        name: file.name || 'image.jpg',
+        type: file.mimeType || 'image/jpeg',
+      });
+    }
+  
+    const response = await fetch('http://localhost:5000/upload', {
+      method: 'POST',
+      body: formData,
+    });
+  
+    if (!response.ok) {
+      throw new Error('Error procesando imagen en el backend');
+    }
+  
+    return await response.blob();
+  };
 
   const pickDocument = async () => {
     try {
@@ -30,8 +58,7 @@ const UploadFile = ({ onUploadSuccess }) => {
 
       setUploading(true);
 
-      const response = await fetch(file.uri);
-      const blob = await response.blob();
+      const blob = await procesarImagenConBackend(file);
 
       const fileExt = file.name.split('.').pop();
       const filePath = `posts/${Date.now()}.${fileExt}`;

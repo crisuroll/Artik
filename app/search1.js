@@ -1,57 +1,99 @@
 import React from 'react';
-import { View, Text, Pressable, TextInput, StyleSheet } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
-import { Link } from 'expo-router';
+import { View, TextInput, FlatList, StyleSheet, Text } from 'react-native';
+import useSearchPosts from '../hooks/useSearchPosts';
+import Post from '../components/Post';
+import CreatePostButton from '../components/CreatePostButton';
 
 const Search1 = () => {
+  const {
+    searchTerm,
+    setSearchTerm,
+    filteredPosts,
+    activeMenuPostId,
+    setActiveMenuPostId,
+    handleSearch,
+    handleInteraction,
+  } = useSearchPosts();
+
+  const handleOption = (option) => {
+    Alert.alert(option);
+    setActiveMenuPostId(null);
+  };
+
+  const renderPost = ({ item }) => (
+    <Post
+      item={item}
+      activeMenuPostId={activeMenuPostId}
+      setActiveMenuPostId={setActiveMenuPostId}
+      handleInteraction={handleInteraction}
+      handleOption={handleOption}
+    />
+  );
+
   return (
     <View style={styles.container}>
-      <TextInput placeholder="Search..."
-      style={{
-        height: 45,
-        width: 320,
-        backgroundColor: '#ffffff',
-        borderRadius: 40,
-        paddingHorizontal: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-        elevation: 5,
-        '@media (min-width: 768px)': {
-            display: 'none',
-        },
-      }}
-      />
-      <Pressable style={styles.icon}>
-        <Link href="/search1">
-          <Svg width={28} height={28} viewBox="0 0 24 24">
-            <Path
-              d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 10-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1114 9.5 4.5 4.5 0 019.5 14z"
-              stroke="#70c0b7"
-              strokeWidth="1.5"
-              fill="none"
-            />
-          </Svg>
-        </Link>
-      </Pressable>
-    </View> 
+      <View style={styles.searchBar}>
+        <TextInput
+          placeholder="Search..."
+          value={searchTerm}
+          onChangeText={setSearchTerm}
+          onSubmitEditing={handleSearch}
+          style={styles.searchInput}
+        />
+      </View>
+
+      {searchTerm.trim() === '' ? (
+        <Text style={styles.noResultsText}>
+          Por favor, ingresa una palabra clave para buscar.
+        </Text>
+      ) : filteredPosts.length === 0 ? (
+        <Text style={styles.noResultsText}>No se encontraron resultados.</Text>
+      ) : (
+        <FlatList
+          data={filteredPosts}
+          renderItem={renderPost}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+        />
+      )}
+
+      <CreatePostButton onPress={() => console.log('Crear nuevo post')} />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: 'row',
-    //justifyContent: 'center',
-    //alignItems: 'center',
     padding: 20,
-    paddingTop: 60
+    paddingTop: 60,
   },
-  icon: {
-    paddingTop: 10,
-    paddingLeft: 20
-  }
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  searchInput: {
+    flex: 1,
+    height: 45,
+    backgroundColor: '#ffffff',
+    borderRadius: 40,
+    paddingHorizontal: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  listContent: {
+    paddingBottom: 80,
+  },
+  noResultsText: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#888',
+    marginTop: 20,
+  },
 });
 
 export default Search1;
