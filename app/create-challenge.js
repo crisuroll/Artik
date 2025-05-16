@@ -1,29 +1,22 @@
 import React from 'react';
 import { Image, View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import BackButton from '../components/BackButton';
-import Dropdown from '../components/Dropdown';
 import UploadFile from '../components/UploadFile';
-import { useCreatePost } from '../hooks/useCreatePost';
+import { useCreateChallenge } from '../hooks/useCreateChallenge';
 
-export default function CreatePostPage() {
+export default function CreateChallengePage() {
   const {
-    categories, artstyles, challenges,
-    selectedCategory, setSelectedCategory,
-    selectedArtstyle, setSelectedArtstyle,
-    selectedChallenge, setSelectedChallenge,
-    challengeChecked, setChallengeChecked,
-    title, setTitle, description, setDescription, tags, setTags,
-    imageUrl, setImageUrl,
-    loading, posting, handlePost
-  } = useCreatePost();
+    title, setTitle, description, setDescription, imageUrl, setImageUrl,
+    posting, handleCreateChallenge
+  } = useCreateChallenge();
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <BackButton />
 
       {!imageUrl ? (
-        <UploadFile onUploadSuccess={setImageUrl} bucketName="posts" />
-        ) : (
+        <UploadFile onUploadSuccess={setImageUrl} bucketName="challenges" />
+      ) : (
         <View style={styles.uploadedImageContainer}>
           <Image source={{ uri: imageUrl }} style={styles.uploadedImage} />
           <TouchableOpacity onPress={() => setImageUrl(null)} style={styles.changeImageButton}>
@@ -46,75 +39,12 @@ export default function CreatePostPage() {
         value={description}
         onChangeText={setDescription}
       />
-      <View style={styles.row}>
-        <View style={styles.halfInput}>
-          {loading ? (
-            <ActivityIndicator size="small" color="#000" />
-          ) : (
-            <Dropdown
-              data={categories}
-              onChange={setSelectedCategory}
-              placeholder="Select Category"
-              value={selectedCategory}
-            />
-          )}
-        </View>
-        <View style={styles.halfInput}>
-          {loading ? (
-            <ActivityIndicator size="small" color="#000" />
-          ) : (
-            <Dropdown
-              data={artstyles}
-              onChange={setSelectedArtstyle}
-              placeholder="Select Style"
-              value={selectedArtstyle}
-            />
-          )}
-        </View>
-      </View>
 
-      <View style={[styles.row, { alignItems: 'center' }]}>
-        <Text style={styles.challengeLabel}>Challenge?</Text>
-        <TouchableOpacity
-          style={[
-            styles.checkbox,
-            { backgroundColor: challengeChecked ? '#70c0b7' : '#fff', borderColor: '#70c0b7', borderWidth: 1 }
-          ]}
-          onPress={() => {
-            const newChecked = !challengeChecked;
-            setChallengeChecked(newChecked);
-            if (!newChecked) setSelectedChallenge(null);
-          }}
-        />
-      </View>
-
-      {challengeChecked && (
-        <View style={styles.challengeDropdownContainer}>
-          {loading ? (
-            <ActivityIndicator size="small" color="#000" />
-          ) : (
-            <Dropdown
-              data={challenges}
-              onChange={setSelectedChallenge}
-              placeholder="Select Challenge"
-              value={selectedChallenge}
-            />
-          )}
-        </View>
-      )}
-
-      <TextInput
-        placeholder="Tags (optional)"
-        style={styles.input}
-        value={tags}
-        onChangeText={setTags}
-      />
-
-      <TouchableOpacity style={styles.postButton} onPress={handlePost} disabled={posting}>
+      <TouchableOpacity style={styles.postButton} onPress={handleCreateChallenge} disabled={posting}>
         {posting ? (
           <ActivityIndicator size="small" color="#fff" />
         ) : (
-          <Text style={styles.postButtonText}>Post</Text>
+          <Text style={styles.postButtonText}>Create Challenge</Text>
         )}
       </TouchableOpacity>
     </ScrollView>

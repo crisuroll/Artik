@@ -4,14 +4,14 @@ import * as DocumentPicker from 'expo-document-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../supabase/supabaseClient';
 
-const UploadFile = ({ onUploadSuccess }) => {
+const UploadFile = ({ onUploadSuccess, bucketName }) => {
   const [fileName, setFileName] = useState(null);
   const [previewUri, setPreviewUri] = useState(null);
   const [uploading, setUploading] = useState(false);
 
   const procesarImagenConBackend = async (file) => {
     let formData = new FormData();
-  
+
     if (Platform.OS === 'web') {
       const blob = await fetch(file.uri).then(res => res.blob());
       formData.append('image', new File([blob], file.name, {
@@ -24,16 +24,16 @@ const UploadFile = ({ onUploadSuccess }) => {
         type: file.mimeType || 'image/jpeg',
       });
     }
-  
+
     const response = await fetch('http://localhost:5000/upload', {
       method: 'POST',
       body: formData,
     });
-  
+
     if (!response.ok) {
       throw new Error('Error procesando imagen en el backend');
     }
-  
+
     return await response.blob();
   };
 
@@ -61,10 +61,10 @@ const UploadFile = ({ onUploadSuccess }) => {
       const blob = await procesarImagenConBackend(file);
 
       const fileExt = file.name.split('.').pop();
-      const filePath = `posts/${Date.now()}.${fileExt}`;
+      const filePath = `${bucketName}/${Date.now()}.${fileExt}`;
 
       const { data, error } = await supabase.storage
-        .from('posts')
+        .from(bucketName)
         .upload(filePath, blob, {
           contentType: blob.type || 'image/jpeg',
         });
@@ -78,7 +78,7 @@ const UploadFile = ({ onUploadSuccess }) => {
 
       const { data: urlData, error: urlError } = supabase
         .storage
-        .from('posts')
+        .from(bucketName)
         .getPublicUrl(filePath);
 
       if (urlError) {

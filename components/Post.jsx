@@ -1,10 +1,22 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
 
 const Post = ({ item, activeMenuPostId, setActiveMenuPostId, handleInteraction, handleOption }) => {
+  const router = useRouter();
+
+  const handleUserNavigation = () => {
+    router.push(`/UserProfile?username=${item.users.username}`);
+  };
+
   const imageRatio = item.width && item.height ? item.width / item.height : 1.5;
+
   return (
     <View id="post-container">
+      <TouchableOpacity onPress={handleUserNavigation} style={styles.usernameContainer}>
+        <Text style={styles.username}>{item.username}</Text>
+      </TouchableOpacity>
+
       <View id="post-content" style={styles.postContainer}>
         <View style={styles.imageWrapper}>
           <Image
@@ -66,6 +78,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+  },
+  usernameContainer: {
+    marginHorizontal: 15,
+    marginTop: 10,
+  },
+  username: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1a365d',
   },
   imageWrapper: {
     position: 'relative',
