@@ -1,5 +1,16 @@
 import { supabase } from '../supabase/supabaseClient';
 
+export async function fetchPostById(postId) {
+  const { data, error } = await supabase
+    .from('posts')
+    .select('*, users(id, username, avatar_url), styles(name), categories(name)')
+    .eq('id', postId)
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 export const fetchPostDetails = async (postId) => {
   const { data: postDetails, error: postError } = await supabase
     .from('posts')

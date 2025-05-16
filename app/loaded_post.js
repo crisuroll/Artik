@@ -2,32 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, FlatList, Image } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useLoadPost } from '../hooks/useLoadPost';
-import { fetchPostStats, handleInteraction } from '../services/interactions';
+import { usePostInteractions } from '../hooks/usePostInteractions';
 
 export default function PostDetailScreen() {
   const router = useRouter();
   const { postId } = useLocalSearchParams();
   const { post, comments, loading, handleAddComment } = useLoadPost(postId);
   const [newComment, setNewComment] = useState('');
-  const [likes, setLikes] = useState(0);
-  const [reposts, setReposts] = useState(0);
-  const [shares, setShares] = useState(0);
 
-  useEffect(() => {
-    const loadStats = async () => {
-      const stats = await fetchPostStats(postId);
-      setLikes(stats.likes);
-      setReposts(stats.reposts);
-    };
-
-    if (postId) {
-      loadStats();
-    }
-  }, [postId]);
-
-  const handleLike = () => handleInteraction('likes', post.user_id, postId, setLikes);
-  const handleRepost = () => handleInteraction('reposts', post.user_id, postId, setReposts);
-  const handleShare = () => handleInteraction('shares', post.user_id, postId, setShares);
+  const {
+    likes,
+    reposts,
+    shares,
+    like: handleLike,
+    repost: handleRepost,
+    share: handleShare,
+  } = usePostInteractions(postId, post?.user_id);
 
   if (loading) {
     return (
@@ -96,7 +86,16 @@ export default function PostDetailScreen() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <View style={styles.comment}>
-              <Text style={styles.commentAuthor}>{item.users?.username || 'Anonymous'}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 5 }}>
+                {item.users?.avatar_url ? (
+                  <Image source={{ uri: item.users.avatar_url }} style={styles.avatar} />
+                ) : (
+                  <View style={styles.avatar} />
+                )}
+                <Text style={[styles.commentAuthor, { marginLeft: 8 }]}>
+                  {item.users?.username || 'Anonymous'}
+                </Text>
+              </View>
               <Text style={styles.commentContent}>{item.content}</Text>
             </View>
           )}
@@ -111,8 +110,9 @@ export default function PostDetailScreen() {
           onChangeText={setNewComment}
         />
         <TouchableOpacity
-          onPress={() => {
-            handleAddComment(newComment);
+          onPress={async () => {
+            if (newComment.trim().length === 0) return;
+            await handleAddComment(newComment);
             setNewComment('');
           }}
         >

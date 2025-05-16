@@ -61,7 +61,7 @@ export default function Layout() {
   }
 
   const isAuthScreen = pathname === "/login" || pathname === "/register";
-  const main = pathname === "/home" || pathname === "/challenges" || pathname === "/gallery";
+  const main = pathname === "/home" || pathname === "/search1" || pathname === "/challenges" || pathname === "/gallery" || pathname === "/loaded_challenge" || pathname === "/dm";
 
   return (
     <View style={{ flex: 1, backgroundColor: "#f6fffe", flexDirection: isDesktop ? 'row' : 'column' }}>

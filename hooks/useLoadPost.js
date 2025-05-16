@@ -1,46 +1,32 @@
-import { useEffect, useState } from 'react';
-import { fetchPostDetails, fetchPostComments, addComment } from '../services/loadPost';
+import { useState, useEffect } from 'react';
+import { fetchPostById } from '../services/loadPost';
+import { fetchCommentsByPostId, addCommentToPost } from '../services/interactions';
 import { supabase } from '../supabase/supabaseClient';
 
-export const useLoadPost = (postId) => {
+export function useLoadPost(postId) {
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadPostData = async () => {
-      try {
-        const postDetails = await fetchPostDetails(postId);
-        setPost(postDetails);
-
-        const postComments = await fetchPostComments(postId);
-        setComments(postComments);
-      } catch (error) {
-        console.error('Error loading post data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadPostData();
+    if (!postId) return;
+    setLoading(true);
+    Promise.all([
+      fetchPostById(postId),
+      fetchCommentsByPostId(postId)
+    ]).then(([postData, commentsData]) => {
+      setPost(postData);
+      setComments(commentsData);
+      setLoading(false);
+    });
   }, [postId]);
 
-  const handleAddComment = async (newComment) => {
-    if (!newComment.trim()) return;
-
-    try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user) {
-        alert('You must be logged in to comment.');
-        return;
-      }
-
-      const comment = await addComment(postId, newComment, user.id);
-      setComments((prev) => [...prev, comment]);
-    } catch (error) {
-      console.error('Error adding comment:', error);
-    }
+  const handleAddComment = async (content) => {
+    const user = supabase.auth.getUser ? (await supabase.auth.getUser()).data.user : null;
+    if (!user) return;
+    const newComment = await addCommentToPost(postId, content, user.id);
+    setComments((prev) => [newComment, ...prev]);
   };
 
   return { post, comments, loading, handleAddComment };
-};
+}
