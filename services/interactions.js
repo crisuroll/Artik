@@ -81,3 +81,25 @@ export const handleInteraction = async (type, userId, postId, setState) => {
     console.error(`Error al interactuar con el post (${type}):`, error);
   }
 };
+
+export async function fetchCommentsByPostId(postId) {
+  const { data, error } = await supabase
+    .from('comments')
+    .select('id, content, created_at, users(id, username, avatar_url)')
+    .eq('post_id', postId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data;
+}
+
+export async function addCommentToPost(postId, content, userId) {
+  const { data, error } = await supabase
+    .from('comments')
+    .insert([{ post_id: postId, content, user_id: userId }])
+    .select('id, content, created_at, users(id, username, avatar_url)')
+    .single();
+
+  if (error) throw error;
+  return data;
+}
