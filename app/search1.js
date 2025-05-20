@@ -32,6 +32,7 @@ const Search1 = () => {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.header}>Search</Text>
       <View style={styles.searchBar}>
         <TextInput
           placeholder="Search..."
@@ -66,7 +67,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    paddingTop: 60,
+    paddingTop: 1,
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
   },
   searchBar: {
     flexDirection: 'row',

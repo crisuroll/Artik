@@ -9,6 +9,7 @@ export const loadTimeline = async () => {
         title,
         image_url,
         created_at,
+        user_id,
         users (
           username
         ),
@@ -23,6 +24,7 @@ export const loadTimeline = async () => {
       title: post.title,
       imageUrl: post.image_url,
       username: post.users?.username || 'usuario',
+      userId: post.user_id,
       likes: post.likes?.length || 0,
       reposts: post.reposts?.length || 0,
       shares: Math.floor(Math.random() * 30)

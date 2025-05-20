@@ -2,6 +2,7 @@
 
 .idea/
 supabase/
+server/
 
 # dependencies
 node_modules/

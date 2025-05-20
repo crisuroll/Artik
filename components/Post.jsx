@@ -6,7 +6,9 @@ const Post = ({ item, activeMenuPostId, setActiveMenuPostId, handleInteraction, 
   const router = useRouter();
 
   const handleUserNavigation = () => {
-    router.push(`/UserProfile?username=${item.users.username}`);
+    if (item.userId) {
+      router.push(`/${item.userId}`);
+    }
   };
 
   const imageRatio = item.width && item.height ? item.width / item.height : 1.5;
