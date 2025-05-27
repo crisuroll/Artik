@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, FlatList, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { useRouter } from 'expo-router';
-import { loadTimeline } from '../services/timeline';
-import { loadUser } from '../services/getUser';
+import { loadTimeline } from '../services/postsService';
+import { loadUser } from '../services/usersService';
 import { getImageSize } from '../services/getImages';
-import { interactWithPost } from '../services/interactions';
+import { interactWithPost } from '../services/postsService';
 import Post from '../components/Post';
 import CreatePostButton from '../components/CreatePostButton';
 

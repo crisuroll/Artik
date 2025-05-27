@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { loadUser } from '../services/getUser';
+import { loadUser } from '../services/usersService';
 
 const Post = ({ item, activeMenuPostId, setActiveMenuPostId, handleInteraction, handleOption }) => {
   const router = useRouter();

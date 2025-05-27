@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Pressable, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { supabase } from '../../supabase/supabaseClient';
-import { useRegister } from '../../hooks/useRegister';
+import { useRegister } from '../../hooks/useAuth';
 
 export default function Register() {
   const router = useRouter();

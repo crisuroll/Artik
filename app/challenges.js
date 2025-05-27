@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, FlatList, StyleSheet, Image, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useLoadChallenges } from '../hooks/useLoadChallenges';
+import { useLoadChallenges } from '../hooks/useChallenges';
 import CreatePostButton from '../components/CreatePostButton';
 
 export default function ChallengesPage() {

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { loadUser } from '../services/getUser';
-import { loadUserCommission, upsertUserCommission } from '../services/getUserCommission';
+import { loadUser } from '../services/usersService';
+import { loadUserCommission, upsertUserCommission } from '../services/usersService';
 import UploadFile from '../components/UploadFile';
 import BackButton from '../components/BackButton';
 

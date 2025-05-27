@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, Image, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { loadChallengePosts } from '../services/challengePosts';
+import { loadChallengePosts } from '../services/challengesService';
 import { getImageSize } from '../services/getImages';
 import Post from '../components/Post';
 

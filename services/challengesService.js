@@ -1,5 +1,24 @@
-import { useState, useEffect } from 'react';
 import { supabase } from '../supabase/supabaseClient';
+import { useState, useEffect } from 'react';
+
+export const loadChallengePosts = async (challengeId) => {
+  const { data: challengeData, error: challengeError } = await supabase
+    .from('challenges')
+    .select('*')
+    .eq('id', challengeId)
+    .single();
+
+  if (challengeError) throw challengeError;
+
+  const { data: postsData, error: postsError } = await supabase
+    .from('posts')
+    .select('*')
+    .eq('challenge_id', challengeId);
+
+  if (postsError) throw postsError;
+
+  return { challengeData, postsData };
+};
 
 export function useLoadChallenge(challengeId) {
   const [challenge, setChallenge] = useState(null);

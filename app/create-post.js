@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import { Image, View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { supabase } from '../supabase/supabaseClient';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import BackButton from '../components/BackButton';
 import Dropdown from '../components/Dropdown';
-import { useCreatePost } from '../hooks/useCreatePost';
+import { useCreatePost } from '../hooks/usePosts';
 import UploadFile from '../components/UploadFile';
 
 export default function CreatePostPage() {

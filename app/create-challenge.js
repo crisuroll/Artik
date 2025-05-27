@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Image, View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import BackButton from '../components/BackButton';
 import UploadFile from '../components/UploadFile';
-import { useCreateChallenge } from '../hooks/useCreateChallenge';
+import { useCreateChallenge } from '../hooks/useChallenges';
 
 export default function CreateChallengePage() {
   const {

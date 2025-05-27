@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, Image, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '../../../supabase/supabaseClient';
-import { loadUser } from '../../../services/getUser';
+import { loadUser } from '../../../services/usersService';
 import { Ionicons } from '@expo/vector-icons';
 import BackButton from '../../../components/BackButton';
 

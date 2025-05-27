@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../supabase/supabaseClient';
-import { loadUser } from '../../services/getUser';
+import { loadUser } from '../../services/usersService';
 
 export default function DM() {
   const [dmConversations, setDmConversations] = useState([]);

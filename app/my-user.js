@@ -1,16 +1,15 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, FlatList } from 'react-native';
 import BackButton from '../components/BackButton';
-import { loadUser } from '../services/getUser';
-import { loadUserPosts } from '../services/getUserPosts';
-import { loadUserReposts } from '../services/getUserReposts';
-import { loadUserProducts } from '../services/getUserProducts';
+import { loadUser } from '../services/usersService';
+import { loadUserPosts } from '../services/usersService';
+import { loadUserReposts } from '../services/usersService';
+import { loadUserProducts  } from '../services/usersService';
 import Post from '../components/Post';
 import CreatePostButton from '../components/CreatePostButton';
 import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { supabase } from '../supabase/supabaseClient';
 import Product from '../components/Product';
-import { loadUserCommission } from '../services/getUserCommission';
+import { loadUserCommission } from '../services/usersService';
 
 export default function ProfileScreen() {
   const [activeTab, setActiveTab] = useState('Posts');

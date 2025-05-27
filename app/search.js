@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, TextInput, FlatList, StyleSheet, Text } from 'react-native';
-import useSearchPosts from '../hooks/useSearchPosts';
+import useSearchPosts from '../hooks/usePosts';
 import Post from '../components/Post';
 import CreatePostButton from '../components/CreatePostButton';
 

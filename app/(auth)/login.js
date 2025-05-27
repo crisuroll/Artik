@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Pressable, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useLogin } from '../../hooks/useLogin';
+import { useLogin } from '../../hooks/useAuth';
 
 export default function Login () {
   const router = useRouter();

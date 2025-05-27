@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, FlatList, Image } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useLoadPost } from '../hooks/useLoadPost';
-import { usePostInteractions } from '../hooks/usePostInteractions';
+import { useLoadPost } from '../hooks/usePosts';
+import { usePostInteractions } from '../hooks/usePosts';
 
 export default function PostDetailScreen() {
   const router = useRouter();
