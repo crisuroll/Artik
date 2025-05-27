@@ -2,9 +2,8 @@ import { View, Text, TouchableOpacity, StyleSheet, FlatList, Modal, TouchableWit
 import React, { useCallback, useRef, useState } from "react";
 import { AntDesign } from "@expo/vector-icons";
 
-export default function Dropdown({ data, onChange, placeholder }) {
+export default function Dropdown({ data, value, onChange, placeholder }) {
   const [expanded, setExpanded] = useState(false);
-  const [value, setValue] = useState("");
   const buttonRef = useRef(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
 
@@ -28,10 +27,11 @@ export default function Dropdown({ data, onChange, placeholder }) {
   }, [expanded, openDropdown]);
 
   const onSelect = useCallback((item) => {
-    onChange(item);
-    setValue(item.label);
+    onChange(item.value);
     setExpanded(false);
   }, [onChange]);
+
+  const selectedLabel = data.find((item) => item.value === value)?.label;
 
   return (
     <View style={styles.container}>
@@ -41,7 +41,7 @@ export default function Dropdown({ data, onChange, placeholder }) {
         activeOpacity={0.8}
         onPress={toggleExpanded}
       >
-        <Text style={styles.text}>{value || placeholder}</Text>
+        <Text style={styles.text}>{selectedLabel || placeholder}</Text>
         <AntDesign name={expanded ? "caretup" : "caretdown"} size={16} />
       </TouchableOpacity>
 

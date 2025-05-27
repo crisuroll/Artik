@@ -38,7 +38,12 @@ export default function Layout() {
             setAvatarUrl(perfil.avatar_url);
           }
             
-        } else if (!user && pathname !== "/login" && pathname !== "/register") {
+        } else if (
+          !user &&
+          pathname !== "/login" &&
+          pathname !== "/register" &&
+          pathname !== "/confirm_email"
+        ) {
           router.push("/login");
         }
 
@@ -61,7 +66,9 @@ export default function Layout() {
   }
 
   const isAuthScreen = pathname === "/login" || pathname === "/register";
+  const isRequestCommission = pathname === "/request-commission";
   const main = pathname === "/home" || pathname === "/search1" || pathname === "/challenges" || pathname === "/gallery" || pathname === "/loaded_challenge" || pathname === "/dm";
+  const isDmChat = pathname.startsWith("/dm/");
 
   return (
     <View style={{ flex: 1, backgroundColor: "#f6fffe", flexDirection: isDesktop ? 'row' : 'column' }}>
@@ -72,9 +79,13 @@ export default function Layout() {
       )}
 
       <View style={{ flex: 1 }}>
-        {main && !isDesktop && <HeaderProfile toggleMenu={toggleMenu} avatarUrl={avatarUrl} />}
+        {/* Solo muestra HeaderProfile si no es un chat DM ni /request-commission */}
+        {main && !isDesktop && !isDmChat && !isRequestCommission && (
+          <HeaderProfile toggleMenu={toggleMenu} avatarUrl={avatarUrl} />
+        )}
         <Slot />
-        {!isAuthScreen && !isDesktop && (
+        {/* Solo muestra NavBarMobile si no es un chat DM ni /request-commission */}
+        {!isAuthScreen && !isDesktop && !isDmChat && !isRequestCommission && (
           <View>
             <NavBarMobile />
           </View>

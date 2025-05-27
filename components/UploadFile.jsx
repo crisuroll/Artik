@@ -4,11 +4,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../supabase/supabaseClient';
 
-const UploadFile = ({ onUploadSuccess, bucketName }) => {
-  const [fileName, setFileName] = useState(null);
-  const [previewUri, setPreviewUri] = useState(null);
-  const [uploading, setUploading] = useState(false);
-
+const UploadFile = ({ imageUrl, onUploadSuccess, bucketName, uploading, setUploading }) => {
   const procesarImagenConBackend = async (file) => {
     let formData = new FormData();
 
@@ -39,25 +35,18 @@ const UploadFile = ({ onUploadSuccess, bucketName }) => {
 
   const pickDocument = async () => {
     try {
+      setUploading(true);
       const result = await DocumentPicker.getDocumentAsync({
         type: 'image/*',
         copyToCacheDirectory: true,
       });
 
       if (result.canceled) {
-        console.log('Selección de documento cancelada');
+        setUploading(false);
         return;
       }
 
-      console.log('Archivo seleccionado:', result);
-
       const file = result.assets[0];
-
-      setFileName(file.name);
-      setPreviewUri(file.uri);
-
-      setUploading(true);
-
       const blob = await procesarImagenConBackend(file);
 
       const fileExt = file.name.split('.').pop();
@@ -70,11 +59,10 @@ const UploadFile = ({ onUploadSuccess, bucketName }) => {
         });
 
       if (error) {
+        setUploading(false);
         console.error('Error subiendo archivo:', error);
         return;
       }
-
-      console.log('Archivo subido:', data);
 
       const { data: urlData, error: urlError } = supabase
         .storage
@@ -82,11 +70,10 @@ const UploadFile = ({ onUploadSuccess, bucketName }) => {
         .getPublicUrl(filePath);
 
       if (urlError) {
+        setUploading(false);
         console.error('Error obteniendo URL pública:', urlError);
         return;
       }
-
-      console.log('URL pública obtenida:', urlData.publicUrl);
 
       if (onUploadSuccess) {
         onUploadSuccess(urlData.publicUrl);
@@ -100,20 +87,21 @@ const UploadFile = ({ onUploadSuccess, bucketName }) => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.uploadContainer} onPress={pickDocument}>
-        {uploading ? (
-          <ActivityIndicator size="large" color="#000" />
-        ) : (
-          <View style={styles.uploadDesign}>
-            <Ionicons name="cloud-upload-outline" size={50} color="#525252" style={styles.icon} />
-            <Text style={styles.browseButtonText}>Upload</Text>
-            {fileName && <Text style={styles.fileName}>Archivo: {fileName}</Text>}
-          </View>
-        )}
-      </TouchableOpacity>
-
-      {previewUri && (
-        <Image source={{ uri: previewUri }} style={styles.previewImage} />
+      {!imageUrl ? (
+        <TouchableOpacity style={styles.uploadContainer} onPress={pickDocument}>
+          {uploading ? (
+            <ActivityIndicator size="large" color="#000" />
+          ) : (
+            <View style={styles.uploadDesign}>
+              <Ionicons name="cloud-upload-outline" size={50} color="#525252" style={styles.icon} />
+              <Text style={styles.browseButtonText}>Upload</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity onPress={pickDocument} style={styles.uploadedImageContainer}>
+          <Image source={{ uri: imageUrl }} style={styles.uploadedImage} resizeMode="contain" />
+        </TouchableOpacity>
       )}
     </View>
   );
@@ -135,6 +123,7 @@ const styles = StyleSheet.create({
     width: 300,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 16,
   },
   uploadDesign: {
     alignItems: 'center',
@@ -148,16 +137,14 @@ const styles = StyleSheet.create({
     color: '#525252',
     marginBottom: 5,
   },
-  fileName: {
-    marginTop: 10,
-    fontSize: 14,
-    color: '#525252',
+  uploadedImageContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
   },
-  previewImage: {
-    width: 200,
-    height: 200,
-    marginTop: 10,
-    borderRadius: 10,
+  uploadedImage: {
+    width: 300,
+    height: 180,
+    borderRadius: 20,
   },
 });
 

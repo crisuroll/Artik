@@ -33,19 +33,46 @@ export const useLogin = () => {
       emailToUse = data.email;
     }
 
-    const { error } = await supabase.auth.signInWithPassword({
+    console.log('Intentando login con:', emailToUse, password);
+
+    const { error, session } = await supabase.auth.signInWithPassword({
       email: emailToUse,
       password,
     });
 
     if (error) {
+      console.log('Login error:', error);
       Alert.alert("Error trying to log in.", error.message);
       setLoading(false);
       return;
     }
 
-    Alert.alert("Éxito", "Inicio de sesión correcto");
-    router.push("/home");
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      Alert.alert("Error", "No se pudo obtener el usuario autenticado.");
+      setLoading(false);
+      return;
+    }
+    const userId = user.id;
+
+    const { data, error: profileError } = await supabase
+      .from('users')
+      .select('username')
+      .eq('id', userId)
+      .single();
+
+    if (profileError) {
+      Alert.alert("Error", "Could not fetch user profile.");
+      setLoading(false);
+      return;
+    }
+
+    if (data.username.startsWith('user_')) {
+      router.replace('/edit_profile');
+    } else {
+      router.replace('/home');
+    }
+
     setLoading(false);
   };
 

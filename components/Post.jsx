@@ -1,17 +1,33 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { loadUser } from '../services/getUser';
 
 const Post = ({ item, activeMenuPostId, setActiveMenuPostId, handleInteraction, handleOption }) => {
   const router = useRouter();
+  const [currentUsername, setCurrentUsername] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await loadUser();
+      setCurrentUsername(user?.username || null);
+    };
+    fetchUser();
+  }, []);
 
   const handleUserNavigation = () => {
     if (item.userId) {
-      router.push(`/${item.userId}`);
+      if (item.username === currentUsername) {
+        router.push('/my-user');
+      } else {
+        router.push(`/${item.username}`);
+      }
     }
   };
 
   const imageRatio = item.width && item.height ? item.width / item.height : 1.5;
+
+  if (!currentUsername) return null;
 
   return (
     <View id="post-container">

@@ -1,9 +1,11 @@
-import React from 'react';
-import { Image, View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import React, { useState } from 'react';
+import { Image, View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { supabase } from '../supabase/supabaseClient';
 import BackButton from '../components/BackButton';
 import Dropdown from '../components/Dropdown';
-import UploadFile from '../components/UploadFile';
 import { useCreatePost } from '../hooks/useCreatePost';
+import UploadFile from '../components/UploadFile';
 
 export default function CreatePostPage() {
   const {
@@ -17,20 +19,19 @@ export default function CreatePostPage() {
     loading, posting, handlePost
   } = useCreatePost();
 
+  const [uploading, setUploading] = useState(false);
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <BackButton />
 
-      {!imageUrl ? (
-        <UploadFile onUploadSuccess={setImageUrl} bucketName="posts" />
-        ) : (
-        <View style={styles.uploadedImageContainer}>
-          <Image source={{ uri: imageUrl }} style={styles.uploadedImage} />
-          <TouchableOpacity onPress={() => setImageUrl(null)} style={styles.changeImageButton}>
-            <Text style={styles.changeImageText}>Change Image</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      <UploadFile
+        imageUrl={imageUrl}
+        onUploadSuccess={setImageUrl}
+        bucketName="posts"
+        uploading={uploading}
+        setUploading={setUploading}
+      />
 
       <TextInput
         placeholder="Title"
@@ -196,5 +197,25 @@ const styles = StyleSheet.create({
   changeImageText: {
     color: 'white',
     fontWeight: 'bold',
+  },
+  uploadContainer: {
+    borderStyle: 'dashed',
+    borderWidth: 2,
+    borderColor: '#70c0b7',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  uploadDesign: {
+    alignItems: 'center',
+  },
+  icon: {
+    marginBottom: 8,
+  },
+  browseButtonText: {
+    color: '#525252',
+    fontWeight: '500',
   },
 });

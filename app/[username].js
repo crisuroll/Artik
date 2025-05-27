@@ -1,52 +1,54 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, FlatList } from 'react-native';
 import BackButton from '../components/BackButton';
-import { loadUser } from '../services/getUser';
-import { loadUserPosts } from '../services/getUserPosts';
-import { loadUserReposts } from '../services/getUserReposts';
-import { loadUserProducts } from '../services/getUserProducts';
-import Post from '../components/Post';
-import CreatePostButton from '../components/CreatePostButton';
-import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { supabase } from '../supabase/supabaseClient';
-import Product from '../components/Product';
+import { loadUserPosts } from '../services/getUserPosts';
+import { loadUserProducts } from '../services/getUserProducts';
+import { loadUserReposts } from '../services/getUserReposts';
 import { loadUserCommission } from '../services/getUserCommission';
+import Product from '../components/Product';
+import Post from '../components/Post';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
-export default function ProfileScreen() {
+export default function UserProfile() {
+  const { username } = useLocalSearchParams();
+  const router = useRouter();
+
+  if (!username) return <Text>No se proporcionó un username</Text>;
+
   const [activeTab, setActiveTab] = useState('Posts');
   const [userData, setUserData] = useState(null);
   const [userPosts, setUserPosts] = useState([]);
-  const [userReposts, setUserReposts] = useState([]);
   const [userProducts, setUserProducts] = useState([]);
+  const [userReposts, setUserReposts] = useState([]);
   const [description, setDescription] = useState('');
-  const [userId, setUserId] = useState(null);
   const [commission, setCommission] = useState(null);
-  const router = useRouter();
-  const { userId: profileUserId } = useLocalSearchParams();
 
   const tabs = ['Posts', , 'Shop', 'Commissions', 'Repost'];
-
+  
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const user = await loadUser();
+        const { data: user, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('username', username)
+          .single();
+
         if (user) {
           setUserData(user);
-          setUserId(user.userId);
           setDescription(user.bio || '');
 
-          const posts = await loadUserPosts(user.userId);
+          const posts = await loadUserPosts(user.id);
           setUserPosts(posts);
 
-          const reposts = await loadUserReposts(user.userId);
-          setUserReposts(reposts);
-
-          console.log('userId para productos:', user.userId);
-          const products = await loadUserProducts(user.userId);
-          console.log('Productos obtenidos:', products);
+          const products = await loadUserProducts(user.id);
           setUserProducts(products);
 
-          const commissionData = await loadUserCommission(user.userId);
+          const reposts = await loadUserReposts(user.id);
+          setUserReposts(reposts);
+
+          const commissionData = await loadUserCommission(user.id);
           setCommission(commissionData);
         }
       } catch (error) {
@@ -55,55 +57,22 @@ export default function ProfileScreen() {
     };
 
     fetchUserData();
-  }, []);
+  }, [username]);
 
-  useEffect(() => {
-    const fetchCommission = async () => {
-      if (!userId) return;
-      const data = await loadUserCommission(userId);
-      setCommission(data);
-    };
-    fetchCommission();
-  }, [userId]);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      if (!profileUserId) return;
-      const products = await loadUserProducts(profileUserId);
-      setUserProducts(products);
-    };
-    fetchProducts();
-  }, [profileUserId]);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!userId) return;
-      let isActive = true;
-      const fetchProducts = async () => {
-        const products = await loadUserProducts(userId);
-        if (isActive) setUserProducts(products);
-        console.log('userId:', userId, 'products:', products);
-      };
-      fetchProducts();
-      return () => { isActive = false; };
-    }, [userId])
+  const renderPost = ({ item }) => (
+    <View style={styles.postContainer}>
+      <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
+      <Text style={styles.postTitle}>{item.title}</Text>
+    </View>
   );
 
   return (
     <View style={styles.container}>
       <BackButton />
 
-      {/* Botón para editar perfil */}
-      <TouchableOpacity
-        style={styles.editProfileButton}
-        onPress={() => router.push('/edit_profile')}
-      >
-        <Text style={styles.editProfileButtonText}>Editar perfil</Text>
-      </TouchableOpacity>
-
       <View style={styles.profileSection}>
-        {userData?.avatarUrl ? (
-          <Image source={{ uri: userData.avatarUrl }} style={styles.avatar} />
+        {userData?.avatar_url ? (
+          <Image source={{ uri: userData.avatar_url }} style={styles.avatar} />
         ) : (
           <View style={styles.avatarPlaceholder}>
             <Text style={styles.avatarText}>No Image</Text>
@@ -113,6 +82,12 @@ export default function ProfileScreen() {
           {userData?.nickname || 'Usuario'} <Text style={styles.at}>@{userData?.username || ''}</Text>
         </Text>
 
+        <TouchableOpacity
+          style={styles.mailIcon}
+          onPress={() => router.push(`/dm/${userData?.username}`)}
+        >
+          <Text style={styles.icon}>✉️</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.descriptionBox}>
@@ -120,7 +95,7 @@ export default function ProfileScreen() {
           placeholder="Descripción"
           multiline
           value={description}
-          onChangeText={setDescription}
+          editable={false}
           style={styles.description}
         />
       </View>
@@ -155,43 +130,40 @@ export default function ProfileScreen() {
         )}
         {activeTab === 'Shop' && (
           <>
-            <CreatePostButton onPress={() => router.push('/create-product')} />
             <FlatList
               data={userProducts}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
-                <Product item={item} />
+                <TouchableOpacity onPress={() => router.push({ pathname: '/loaded_product', params: { productId: item.id } })}>
+                  <Product item={item} />
+                </TouchableOpacity>
               )}
               ListEmptyComponent={
-                <Text style={{ textAlign: 'center', color: '#aaa', marginTop: 20 }}>
-                  No hay productos
-                </Text>
+                <Text style={styles.placeholder}>No hay productos</Text>
               }
               contentContainerStyle={{ paddingBottom: 80 }}
             />
+            <TouchableOpacity
+              onPress={() => router.push('/cart')}
+              style={{
+                position: 'absolute',
+                bottom: 80,
+                right: 30,
+                backgroundColor: '#007b7f',
+                borderRadius: 30,
+                padding: 16,
+                elevation: 4,
+                zIndex: 100,
+              }}
+            >
+              <Text style={{ color: '#fff', fontSize: 28 }}>🛒</Text>
+            </TouchableOpacity>
           </>
         )}
         {activeTab === 'Commissions' && (
-          <View style={{ flex: 1 }}>
-            <TouchableOpacity
-              style={{
-                backgroundColor: '#e1f3f2',
-                padding: 10,
-                borderRadius: 20,
-                alignSelf: 'center',
-                marginBottom: 10,
-                marginTop: 10,
-                opacity: commission ? 0.7 : 1,
-              }}
-              onPress={() => router.push('/edit_commission')}
-              disabled={!!commission}
-            >
-              <Text style={{ color: '#007b7f', fontWeight: 'bold' }}>
-                {commission ? 'Ya tienes una commission' : 'Crear commission'}
-              </Text>
-            </TouchableOpacity>
+          <View style={{ flex: 1, alignItems: 'center', marginTop: 20 }}>
             {commission ? (
-              <View style={{ alignItems: 'center', marginTop: 20 }}>
+              <>
                 {commission.comm_url ? (
                   <Image source={{ uri: commission.comm_url }} style={{ width: 200, height: 200, borderRadius: 10 }} />
                 ) : null}
@@ -199,19 +171,24 @@ export default function ProfileScreen() {
                 <Text style={{ color: '#555', marginTop: 6, textAlign: 'center' }}>{commission.description}</Text>
                 <TouchableOpacity
                   style={{
-                    marginTop: 12,
+                    marginTop: 18,
                     backgroundColor: '#007b7f',
                     borderRadius: 20,
-                    paddingVertical: 6,
-                    paddingHorizontal: 16,
+                    paddingVertical: 10,
+                    paddingHorizontal: 30,
                   }}
-                  onPress={() => router.push('/edit_commission')}
+                  onPress={() => router.push({
+                    pathname: '/request-commission',
+                    params: { userId: commission.user_id }
+                  })}
                 >
-                  <Text style={{ color: '#fff' }}>Editar</Text>
+                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>
+                    Solicitar comisión
+                  </Text>
                 </TouchableOpacity>
-              </View>
+              </>
             ) : (
-              <Text style={styles.placeholder}>No tienes commission publicada</Text>
+              <Text style={styles.placeholder}>No tiene commission publicada</Text>
             )}
           </View>
         )}
@@ -237,18 +214,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     flex: 1,
     backgroundColor: '#fff',
-  },
-  editProfileButton: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#e1f3f2',
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    marginBottom: 8,
-  },
-  editProfileButtonText: {
-    color: '#007b7f',
-    fontWeight: 'bold',
   },
   profileSection: {
     alignItems: 'center',
@@ -323,6 +288,9 @@ const styles = StyleSheet.create({
   postsList: {
     paddingTop: 10,
   },
+  productsList: {
+    paddingTop: 10,
+  },
   postContainer: {
     marginBottom: 15,
     borderRadius: 10,
@@ -345,40 +313,5 @@ const styles = StyleSheet.create({
     color: '#aaa',
     textAlign: 'center',
     marginTop: 20,
-  },
-  productContainer: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 10,
-    padding: 12,
-    marginVertical: 8,
-    marginHorizontal: 4,
-    alignItems: 'center',
-    elevation: 2,
-  },
-  productImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 10,
-    marginBottom: 8,
-    backgroundColor: '#eee',
-  },
-  productTitle: {
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 4,
-  },
-  productDesc: {
-    color: '#555',
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  productPrice: {
-    color: '#007b7f',
-    fontWeight: 'bold',
-    marginBottom: 2,
-  },
-  productStock: {
-    color: '#888',
-    fontSize: 13,
   },
 });

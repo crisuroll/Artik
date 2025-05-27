@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Image, View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import BackButton from '../components/BackButton';
 import UploadFile from '../components/UploadFile';
@@ -10,20 +10,19 @@ export default function CreateChallengePage() {
     posting, handleCreateChallenge
   } = useCreateChallenge();
 
+  const [uploading, setUploading] = useState(false);
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <BackButton />
 
-      {!imageUrl ? (
-        <UploadFile onUploadSuccess={setImageUrl} bucketName="challenges" />
-      ) : (
-        <View style={styles.uploadedImageContainer}>
-          <Image source={{ uri: imageUrl }} style={styles.uploadedImage} />
-          <TouchableOpacity onPress={() => setImageUrl(null)} style={styles.changeImageButton}>
-            <Text style={styles.changeImageText}>Change Image</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      <UploadFile
+        onUploadSuccess={setImageUrl}
+        bucketName="challenges"
+        imageUrl={imageUrl}
+        uploading={uploading}
+        setUploading={setUploading}
+      />
 
       <TextInput
         placeholder="Title"
