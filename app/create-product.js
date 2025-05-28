@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert, ScrollView } from 'react-native';
-import { supabase } from '../supabase/supabaseClient';
 import BackButton from '../components/BackButton';
 import UploadFile from '../components/UploadFile';
 import { useRouter } from 'expo-router';
+import { supabase } from '../supabase/supabaseClient';
+import { useCreateProduct } from '../hooks/useProducts';
 
 export default function CreateProductScreen() {
   const [image, setImage] = useState('');
@@ -14,34 +15,24 @@ export default function CreateProductScreen() {
   const [userId, setUserId] = useState(null);
   const [uploading, setUploading] = useState(false);
   const router = useRouter();
+  const { handleCreateProduct, loading } = useCreateProduct();
 
-  React.useEffect(() => {
+  useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setUserId(data?.user?.id || null);
     });
   }, []);
 
-  const handleCreateProduct = async () => {
-    if (!title || !description || !price || !stock || !image) {
-      Alert.alert('Completa todos los campos');
-      return;
-    }
-    const { error } = await supabase.from('products').insert([
-      {
-        name: title,
-        description,
-        price: parseFloat(price),
-        stock: parseInt(stock),
-        user_id: userId,
-        product_url: image,
-      },
-    ]);
-    if (error) {
-      Alert.alert('Error al crear el producto', error.message);
-    } else {
-      Alert.alert('Producto creado');
-      router.back();
-    }
+  const onCreate = () => {
+    handleCreateProduct({
+      name: title,
+      description,
+      price,
+      stock,
+      user_id: userId,
+      product_url: image,
+      onSuccess: () => router.back(),
+    });
   };
 
   return (
@@ -82,7 +73,7 @@ export default function CreateProductScreen() {
         keyboardType="numeric"
         style={styles.input}
       />
-      <Button title="Crear producto" onPress={handleCreateProduct} />
+      <Button title={loading ? "Creando..." : "Crear producto"} onPress={onCreate} disabled={loading} />
     </ScrollView>
   );
 }

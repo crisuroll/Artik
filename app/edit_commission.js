@@ -1,70 +1,108 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { loadUser } from '../services/usersService';
-import { loadUserCommission, upsertUserCommission } from '../services/usersService';
 import UploadFile from '../components/UploadFile';
 import BackButton from '../components/BackButton';
+import { useEditCommission } from '../hooks/useShop';
 
-export default function EditCommissionScreen() {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [imageUrl, setImageUrl] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [commissionId, setCommissionId] = useState(null);
-  const [loading, setLoading] = useState(true);
+function OptionListInput({ label, options, setOptions, placeholder }) {
+  const [inputs, setInputs] = useState(['']);
 
-  const router = useRouter();
+  // Asegura que options siempre sea un array
+  const safeOptions = Array.isArray(options) ? options : [];
 
   useEffect(() => {
-    const fetchCommission = async () => {
-      setLoading(true);
-      const user = await loadUser();
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-      try {
-        const commission = await loadUserCommission(user.userId);
-        if (commission) {
-          setTitle(commission.title || '');
-          setDescription(commission.description || '');
-          setImageUrl(commission.comm_url || null);
-          setCommissionId(commission.id);
-        } else {
-          setTitle('');
-          setDescription('');
-          setImageUrl(null);
-          setCommissionId(null);
-        }
-      } catch (e) {
-        // Silenciar cualquier error (incluido 406)
-      }
-      setLoading(false);
-    };
-    fetchCommission();
-  }, []);
-
-  const handleSave = async () => {
-    if (!title.trim() || !description.trim()) {
-      return;
+    if (!safeOptions.includes("Otro")) {
+      setOptions([...safeOptions, "Otro"]);
     }
-    setUploading(true);
-    const user = await loadUser();
+  }, [safeOptions, setOptions]);
 
-    try {
-      await upsertUserCommission({
-        userId: user.userId,
-        title,
-        description,
-        imageUrl,
-      });
-      router.back();
-    } catch (e) {
-      // Silenciar cualquier error
-    }
-    setUploading(false);
+  const handleAddInput = () => {
+    setInputs([...inputs, '']);
   };
+
+  const handleConfirm = (idx) => {
+    const value = inputs[idx].trim();
+    if (value && !safeOptions.includes(value)) {
+      setOptions([...safeOptions.filter(opt => opt !== "Otro"), value, "Otro"]);
+    }
+    setInputs(inputs.map((input, i) => (i === idx ? '' : input)));
+  };
+
+  const handleRemoveOption = (idx) => {
+    const filtered = safeOptions.filter((_, i) => i !== idx && safeOptions[_] !== "Otro");
+    setOptions([...filtered, "Otro"]);
+  };
+
+  const handleInputChange = (text, idx) => {
+    setInputs(inputs.map((input, i) => (i === idx ? text : input)));
+  };
+
+  return (
+    <View style={{ marginBottom: 16 }}>
+      <Text style={styles.label}>{label}</Text>
+      {/* Inputs para escribir nuevas opciones */}
+      {inputs.map((input, idx) => (
+        <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+          <TextInput
+            style={[styles.input, { flex: 1, marginBottom: 0 }]}
+            value={input}
+            onChangeText={text => handleInputChange(text, idx)}
+            placeholder={placeholder}
+          />
+          <TouchableOpacity onPress={() => handleConfirm(idx)} style={{ marginLeft: 8, backgroundColor: '#1abc9c', borderRadius: 8, padding: 8 }}>
+            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>✓</Text>
+          </TouchableOpacity>
+        </View>
+      ))}
+      {/* Opciones definitivas */}
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+        {safeOptions.map((opt, idx) => (
+          <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#eee', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, margin: 2 }}>
+            <Text>{opt}</Text>
+            {opt !== "Otro" && (
+              <TouchableOpacity onPress={() => handleRemoveOption(idx)} style={{ marginLeft: 6 }}>
+                <Text style={{ color: '#d00', fontWeight: 'bold' }}>×</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+export default function EditCommissionScreen() {
+  const router = useRouter();
+  const {
+    title, setTitle,
+    description, setDescription,
+    imageUrl, setImageUrl,
+    loading, uploading, setUploading,
+    fetchCommission,
+    handleSave,
+    typeOptions, setTypeOptions,
+    numCharactersOptions, setNumCharactersOptions,
+    sizeOptions, setSizeOptions,
+  } = useEditCommission();
+
+  useEffect(() => {
+    fetchCommission();
+  }, [fetchCommission]);
+
+  const onSave = useCallback(async () => {
+    setUploading(true);
+    await handleSave({
+      title,
+      description,
+      imageUrl,
+      type_options: typeOptions,
+      num_characters_options: numCharactersOptions,
+      size_options: sizeOptions,
+    });
+    setUploading(false);
+    router.back();
+  }, [title, description, imageUrl, typeOptions, numCharactersOptions, sizeOptions, handleSave, router]);
 
   if (loading) {
     return (
@@ -75,15 +113,12 @@ export default function EditCommissionScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <BackButton />
       <Text style={styles.label}>Imagen</Text>
       <UploadFile
         imageUrl={imageUrl}
-        onUploadSuccess={(url) => {
-          console.log('Imagen subida, URL:', url);
-          setImageUrl(url);
-        }}
+        onUploadSuccess={setImageUrl}
         setUploading={setUploading}
         bucketName="commissions"
         style={styles.imagePicker}
@@ -107,16 +142,35 @@ export default function EditCommissionScreen() {
         multiline
       />
 
+      <OptionListInput
+        label="Opciones de tipo"
+        options={typeOptions}
+        setOptions={setTypeOptions}
+        placeholder="Añadir tipo..."
+      />
+      <OptionListInput
+        label="Opciones de nº personajes"
+        options={numCharactersOptions}
+        setOptions={setNumCharactersOptions}
+        placeholder="Añadir nº personajes..."
+      />
+      <OptionListInput
+        label="Opciones de tamaño"
+        options={sizeOptions}
+        setOptions={setSizeOptions}
+        placeholder="Añadir tamaño..."
+      />
+
       <TouchableOpacity
         style={styles.saveButton}
-        onPress={handleSave}
+        onPress={onSave}
         disabled={uploading}
       >
         <Text style={styles.saveButtonText}>
           {uploading ? 'Guardando...' : 'Guardar'}
         </Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 

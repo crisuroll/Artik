@@ -9,6 +9,7 @@ const BarMenu = ({ onClose }) => {
   const translateX = useRef(new Animated.Value(-width * 0.4)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [userEmail, setUserEmail] = useState(null);
+  const [username, setUsername] = useState(null);
   const isWeb = Platform.OS === 'web';
 
   useEffect(() => {
@@ -29,6 +30,13 @@ const BarMenu = ({ onClose }) => {
       const { data } = await supabase.auth.getSession();
       if (data?.session?.user) {
         setUserEmail(data.session.user.email);
+        // Obtener el username del usuario autenticado
+        const { data: userData } = await supabase
+          .from('users')
+          .select('username')
+          .eq('id', data.session.user.id)
+          .single();
+        setUsername(userData?.username);
       }
     };
 
@@ -50,8 +58,12 @@ const BarMenu = ({ onClose }) => {
     ]).start(() => onClose());
   };
 
+  // Cambia aquí la redirección
   const handleMyProfile = () => {
-    router.push('/my-user');
+    if (username) {
+      router.push(`/${username}`);
+      handleClose();
+    }
   };
 
   const handleLogout = async () => {

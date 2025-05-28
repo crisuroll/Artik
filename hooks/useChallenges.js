@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Alert } from 'react-native';
 import { supabase } from '../supabase/supabaseClient';
+import { fetchChallengeById, fetchChallengePosts, fetchChallengeWithPosts, loadChallengePosts } from '../services/challengesService';
+import { getImageSize } from '../services/getImages';
 
 export function useCreateChallenge() {
   const [title, setTitle] = useState('');
@@ -76,4 +78,63 @@ export function useLoadChallenges() {
   }, []);
 
   return { challenges, loading };
+}
+
+export function useChallenge(challengeId) {
+  const [challenge, setChallenge] = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadChallenge = useCallback(async () => {
+    setLoading(true);
+    try {
+      const challengeData = await fetchChallengeById(challengeId);
+      setChallenge(challengeData);
+      const postsData = await fetchChallengePosts(challengeId);
+      setPosts(postsData);
+    } catch (e) {
+      // Manejo de error opcional
+    }
+    setLoading(false);
+  }, [challengeId]);
+
+  return { challenge, posts, loading, loadChallenge };
+}
+
+export function useLoadedChallenge(challengeId) {
+  const [challenge, setChallenge] = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchChallengeAndPosts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { challengeData, postsData } = await loadChallengePosts(challengeId);
+
+      setChallenge(challengeData);
+
+      const processedPosts = await Promise.all(
+        postsData.map(async (post) => {
+          if (post.image_url) {
+            try {
+              const { width, height } = await getImageSize(post.image_url);
+              return { ...post, imageUrl: post.image_url, width, height };
+            } catch (error) {
+              return { ...post, imageUrl: post.image_url };
+            }
+          }
+          return post;
+        })
+      );
+
+      setPosts(processedPosts);
+    } catch (error) {
+      setChallenge(null);
+      setPosts([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [challengeId]);
+
+  return { challenge, posts, loading, fetchChallengeAndPosts };
 }

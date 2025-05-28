@@ -1,4 +1,5 @@
 import { supabase } from '../supabase/supabaseClient';
+import { getImageSize } from './getImages';
 
 export async function interactWithPost(type, userId, postId) {
   const tableMap = {
@@ -198,3 +199,65 @@ export const loadTimeline = async () => {
     return [];
   }
 };
+
+export const loadTimelineWithImageSizes = async () => {
+  const posts = await loadTimeline();
+  return Promise.all(
+    posts.map(async (post) => {
+      if (post.imageUrl) {
+        try {
+          const { width, height } = await getImageSize(post.imageUrl);
+          return { ...post, width, height };
+        } catch {
+          return post;
+        }
+      }
+      return post;
+    })
+  );
+};
+
+export async function getPostInteractions(postId) {
+  const { count: likesCount } = await supabase
+    .from('likes')
+    .select('*', { count: 'exact', head: true })
+    .eq('post_id', postId);
+
+  const { count: repostsCount } = await supabase
+    .from('reposts')
+    .select('*', { count: 'exact', head: true })
+    .eq('post_id', postId);
+
+  const { count: sharesCount } = await supabase
+    .from('shares')
+    .select('*', { count: 'exact', head: true })
+    .eq('post_id', postId);
+
+  return {
+    likes: likesCount || 0,
+    reposts: repostsCount || 0,
+    shares: sharesCount || 0,
+  };
+}
+
+export async function fetchCategories() {
+  const { data, error } = await supabase.from('categories').select('*');
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchStyles() {
+  const { data, error } = await supabase.from('styles').select('*');
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchPostsByFilter({ filterType, filterId }) {
+  const filterColumn = filterType === 'Category' ? 'category_id' : 'style_id';
+  const { data, error } = await supabase
+    .from('posts')
+    .select('*')
+    .eq(filterColumn, filterId);
+  if (error) throw error;
+  return data;
+}

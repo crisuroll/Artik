@@ -36,17 +36,19 @@ export default function DM() {
         const otherUser = msg.sender_id === currentUserId ? msg.receiver : msg.sender;
         if (!otherUser || !otherUser.id) return;
 
+        const key = `${otherUser.id}_${msg.is_commission_related ? 'commission' : 'dm'}`;
+
         if (msg.is_commission_related) {
-          if (!commissions[otherUser.id]) {
-            commissions[otherUser.id] = {
+          if (!commissions[key]) {
+            commissions[key] = {
               user: otherUser,
               lastMessage: msg.content,
-              commissionData: msg.commissionData,
+              // Puedes añadir más datos de comisión aquí si quieres
             };
           }
         } else {
-          if (!dm[otherUser.id]) {
-            dm[otherUser.id] = {
+          if (!dm[key]) {
+            dm[key] = {
               user: otherUser,
               lastMessage: msg.content,
             };

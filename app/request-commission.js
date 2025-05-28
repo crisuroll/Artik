@@ -1,102 +1,77 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { supabase } from "../supabase/supabaseClient";
 import BackButton from "../components/BackButton";
 import Dropdown from "../components/Dropdown";
+import { useCommission } from "../hooks/useShop";
+import { supabase } from '../supabase/supabaseClient';
+import { loadUser } from '../services/usersService';
 
 export default function RequestCommission() {
-  const { userId, artistId } = useLocalSearchParams();
+  const params = useLocalSearchParams();
+  console.log("params:", params);
+  const artistId = params.artistId;
+  console.log("artistId:", artistId);
+  const [userId, setUserId] = useState(params.userId);
   const router = useRouter();
-
-  const [commissionTab, setCommissionTab] = useState(null);
 
   const [type, setType] = useState("");
   const [numCharacters, setNumCharacters] = useState("");
   const [size, setSize] = useState("");
   const [userDescription, setUserDescription] = useState("");
 
-  const typeOptions = [
-    { label: "Selecciona tipo...", value: "" },
-    { label: "Retrato", value: "retrato" },
-    { label: "Medio cuerpo", value: "medio_cuerpo" },
-    { label: "Cuerpo entero", value: "cuerpo_entero" },
-  ];
-  const numCharactersOptions = [
-    { label: "Selecciona nº personajes...", value: "" },
-    { label: "1", value: "1" },
-    { label: "2", value: "2" },
-    { label: "3", value: "3" },
-    { label: "4+", value: "4+" },
-  ];
-  const sizeOptions = [
-    { label: "Selecciona tamaño...", value: "" },
-    { label: "A5", value: "A5" },
-    { label: "A4", value: "A4" },
-    { label: "A3", value: "A3" },
-  ];
+  const { commissionTab, loadCommissionTab, handleSendOffer } = useCommission(artistId, userId, router);
 
   useEffect(() => {
-    console.log("artistId recibido:", artistId);
-    const fetchCommissionTab = async () => {
-      if (!artistId) return;
-      const { data } = await supabase
+    if (artistId) {
+      loadCommissionTab();
+    }
+  }, [artistId, loadCommissionTab]);
+
+  console.log("artistId antes del useEffect:", artistId);
+
+  useEffect(() => {
+    console.log("Entrando en useEffect con artistId:", artistId);
+    if (artistId) {
+      supabase
         .from("commissions_tab")
         .select("*")
         .eq("user_id", artistId)
-        .single();
-      console.log("commissionTab data:", data);
-      if (data) setCommissionTab(data);
-    };
-    fetchCommissionTab();
+        .then(({ data, error }) => {
+          console.log("Consulta directa:", data, error);
+        });
+    }
   }, [artistId]);
 
-  const handleSendOffer = async () => {
-    if (!userDescription.trim()) return alert("Agrega una descripción");
-
-    const { data: newCommission, error: commissionError } = await supabase
-      .from("commissions")
-      .insert([{
-        user_id: userId,      
-        artist_id: artistId,
-        type,
-        num_characters: numCharacters,
-        size,
-        description: userDescription,
-      }])
-      .select()
-      .single();
-
-    if (commissionError || !newCommission) {
-      alert("No se pudo crear la comisión.");
-      return;
+  useEffect(() => {
+    if (!userId) {
+      loadUser().then(user => {
+        if (user) setUserId(user.userId);
+      });
     }
+  }, [userId]);
 
-    const { data: artistData, error: artistError } = await supabase
-      .from("users")
-      .select("username")
-      .eq("id", artistId)
-      .single();
-
-    if (artistError || !artistData) {
-      alert("No se pudo encontrar el usuario destino.");
-      return;
+  function parseOptions(opt) {
+    if (Array.isArray(opt)) return opt;
+    if (typeof opt === "string") {
+      try {
+        let parsed = JSON.parse(opt);
+        if (typeof parsed === "string") parsed = JSON.parse(parsed);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
     }
+    return [];
+  }
 
-    const { error: messageError } = await supabase.from("messages").insert([{
-      sender_id: userId,
-      receiver_id: artistId,
-      content: userDescription,
-      is_commission_related: true,
-    }]);
+  const typeOptions = parseOptions(commissionTab?.type_options).map(opt => ({ label: opt, value: opt }));
+  const numCharactersOptions = parseOptions(commissionTab?.num_characters_options).map(opt => ({ label: opt, value: opt }));
+  const sizeOptions = parseOptions(commissionTab?.size_options).map(opt => ({ label: opt, value: opt }));
 
-    if (messageError) {
-      alert("Error al enviar el primer mensaje");
-      return;
-    }
+  const noOptions = !typeOptions.length || !numCharactersOptions.length || !sizeOptions.length;
 
-    router.push(`/dm/${artistData.username}?commission=1`);
-  };
+  console.log("commissionTab", commissionTab);
 
   return (
     <KeyboardAvoidingView
@@ -110,24 +85,32 @@ export default function RequestCommission() {
         {commissionTab?.comm_url && (
           <Image source={{ uri: commissionTab.comm_url }} style={styles.tablilla} />
         )}
-        <Dropdown
-          data={typeOptions}
-          value={type}
-          onChange={setType}
-          placeholder="Selecciona tipo..."
-        />
-        <Dropdown
-          data={numCharactersOptions}
-          value={numCharacters}
-          onChange={setNumCharacters}
-          placeholder="Selecciona nº personajes..."
-        />
-        <Dropdown
-          data={sizeOptions}
-          value={size}
-          onChange={setSize}
-          placeholder="Selecciona tamaño..."
-        />
+        {noOptions ? (
+          <Text style={{ color: 'red', marginBottom: 16 }}>
+            El artista aún no ha configurado las opciones de comisión.
+          </Text>
+        ) : (
+          <>
+            <Dropdown
+              data={typeOptions}
+              value={type}
+              onChange={setType}
+              placeholder="Selecciona tipo..."
+            />
+            <Dropdown
+              data={numCharactersOptions}
+              value={numCharacters}
+              onChange={setNumCharacters}
+              placeholder="Selecciona nº personajes..."
+            />
+            <Dropdown
+              data={sizeOptions}
+              value={size}
+              onChange={setSize}
+              placeholder="Selecciona tamaño..."
+            />
+          </>
+        )}
         <TextInput
           style={[styles.input, { height: 80 }]}
           placeholder="Descripción de tu pedido"
@@ -135,7 +118,13 @@ export default function RequestCommission() {
           onChangeText={setUserDescription}
           multiline
         />
-        <TouchableOpacity style={styles.sendBtn} onPress={handleSendOffer}>
+        <TouchableOpacity
+          style={styles.sendBtn}
+          onPress={() =>
+            handleSendOffer({ type, numCharacters, size, userDescription })
+          }
+          disabled={noOptions}
+        >
           <Text style={styles.sendBtnText}>Enviar oferta</Text>
         </TouchableOpacity>
       </ScrollView>

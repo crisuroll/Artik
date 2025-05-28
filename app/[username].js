@@ -1,74 +1,62 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, FlatList } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, FlatList, ActivityIndicator } from 'react-native';
 import BackButton from '../components/BackButton';
-import { supabase } from '../supabase/supabaseClient';
-import { loadUserPosts } from '../services/usersService';
-import { loadUserProducts  } from '../services/usersService';
-import { loadUserReposts } from '../services/usersService';
-import { loadUserCommission } from '../services/usersService';
 import Product from '../components/Product';
 import Post from '../components/Post';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { usePublicUser } from '../hooks/useAuth';
+import { loadUser } from '../services/usersService';
 
 export default function UserProfile() {
   const { username } = useLocalSearchParams();
   const router = useRouter();
+  const [myUser, setMyUser] = useState(null);
+  const [loadingMyUser, setLoadingMyUser] = useState(true);
+  const {
+    userData,
+    userPosts,
+    userProducts,
+    userReposts,
+    description,
+    commission,
+    loading,
+  } = usePublicUser(username);
+
+  React.useEffect(() => {
+    let mounted = true;
+    loadUser().then(user => {
+      if (mounted) {
+        setMyUser(user);
+        setLoadingMyUser(false);
+      }
+    });
+    return () => { mounted = false; };
+  }, []);
+
+  const isMyProfile = useMemo(() => {
+    if (!myUser || !userData) return false;
+    return myUser.username === userData.username;
+  }, [myUser, userData]);
+
+  const tabs = ['Posts', 'Shop', 'Commissions', 'Repost'];
+  const [activeTab, setActiveTab] = React.useState('Posts');
 
   if (!username) return <Text>No se proporcionó un username</Text>;
-
-  const [activeTab, setActiveTab] = useState('Posts');
-  const [userData, setUserData] = useState(null);
-  const [userPosts, setUserPosts] = useState([]);
-  const [userProducts, setUserProducts] = useState([]);
-  const [userReposts, setUserReposts] = useState([]);
-  const [description, setDescription] = useState('');
-  const [commission, setCommission] = useState(null);
-
-  const tabs = ['Posts', , 'Shop', 'Commissions', 'Repost'];
-  
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const { data: user, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('username', username)
-          .single();
-
-        if (user) {
-          setUserData(user);
-          setDescription(user.bio || '');
-
-          const posts = await loadUserPosts(user.id);
-          setUserPosts(posts);
-
-          const products = await loadUserProducts(user.id);
-          setUserProducts(products);
-
-          const reposts = await loadUserReposts(user.id);
-          setUserReposts(reposts);
-
-          const commissionData = await loadUserCommission(user.id);
-          setCommission(commissionData);
-        }
-      } catch (error) {
-        console.error('Error al cargar los datos del usuario:', error);
-      }
-    };
-
-    fetchUserData();
-  }, [username]);
-
-  const renderPost = ({ item }) => (
-    <View style={styles.postContainer}>
-      <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
-      <Text style={styles.postTitle}>{item.title}</Text>
-    </View>
-  );
+  if (loading || loadingMyUser) return <ActivityIndicator style={{ flex: 1 }} size="large" color="#007b7f" />;
 
   return (
     <View style={styles.container}>
       <BackButton />
+
+      {/* Botón solo si es mi perfil */}
+      {isMyProfile && (
+        <TouchableOpacity
+          style={styles.editProfileButton}
+          onPress={() => router.push('/edit_profile')}
+        >
+          <Text style={styles.editProfileButtonText}>Editar perfil</Text>
+        </TouchableOpacity>
+      )}
 
       <View style={styles.profileSection}>
         {userData?.avatar_url ? (
@@ -82,12 +70,15 @@ export default function UserProfile() {
           {userData?.nickname || 'Usuario'} <Text style={styles.at}>@{userData?.username || ''}</Text>
         </Text>
 
-        <TouchableOpacity
-          style={styles.mailIcon}
-          onPress={() => router.push(`/dm/${userData?.username}`)}
-        >
-          <Text style={styles.icon}>✉️</Text>
-        </TouchableOpacity>
+        {/* Botón de mensaje solo si NO es mi perfil */}
+        {!isMyProfile && (
+          <TouchableOpacity
+            style={styles.mailIcon}
+            onPress={() => router.push(`/dm/${userData?.username}`)}
+          >
+            <Text style={styles.icon}>✉️</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={styles.descriptionBox}>
@@ -95,7 +86,7 @@ export default function UserProfile() {
           placeholder="Descripción"
           multiline
           value={description}
-          editable={false}
+          editable={isMyProfile}
           style={styles.description}
         />
       </View>
@@ -130,6 +121,24 @@ export default function UserProfile() {
         )}
         {activeTab === 'Shop' && (
           <>
+            {/* Botón para crear producto solo si es mi perfil */}
+            {isMyProfile && (
+              <TouchableOpacity
+                style={{
+                  position: 'absolute',
+                  bottom: 80,
+                  right: 30,
+                  backgroundColor: '#007b7f',
+                  borderRadius: 30,
+                  padding: 16,
+                  elevation: 4,
+                  zIndex: 100,
+                }}
+                onPress={() => router.push('/create-product')}
+              >
+                <Text style={{ color: '#fff', fontSize: 28 }}>＋</Text>
+              </TouchableOpacity>
+            )}
             <FlatList
               data={userProducts}
               keyExtractor={(item) => item.id}
@@ -143,21 +152,24 @@ export default function UserProfile() {
               }
               contentContainerStyle={{ paddingBottom: 80 }}
             />
-            <TouchableOpacity
-              onPress={() => router.push('/cart')}
-              style={{
-                position: 'absolute',
-                bottom: 80,
-                right: 30,
-                backgroundColor: '#007b7f',
-                borderRadius: 30,
-                padding: 16,
-                elevation: 4,
-                zIndex: 100,
-              }}
-            >
-              <Text style={{ color: '#fff', fontSize: 28 }}>🛒</Text>
-            </TouchableOpacity>
+            {/* Botón carrito solo si NO es mi perfil */}
+            {!isMyProfile && (
+              <TouchableOpacity
+                onPress={() => router.push('/cart')}
+                style={{
+                  position: 'absolute',
+                  bottom: 20,
+                  right: 30,
+                  backgroundColor: '#007b7f',
+                  borderRadius: 30,
+                  padding: 16,
+                  elevation: 4,
+                  zIndex: 100,
+                }}
+              >
+                <Text style={{ color: '#fff', fontSize: 28 }}>🛒</Text>
+              </TouchableOpacity>
+            )}
           </>
         )}
         {activeTab === 'Commissions' && (
@@ -169,26 +181,67 @@ export default function UserProfile() {
                 ) : null}
                 <Text style={{ fontWeight: 'bold', fontSize: 18, marginTop: 10 }}>{commission.title}</Text>
                 <Text style={{ color: '#555', marginTop: 6, textAlign: 'center' }}>{commission.description}</Text>
-                <TouchableOpacity
-                  style={{
-                    marginTop: 18,
-                    backgroundColor: '#007b7f',
-                    borderRadius: 20,
-                    paddingVertical: 10,
-                    paddingHorizontal: 30,
-                  }}
-                  onPress={() => router.push({
-                    pathname: '/request-commission',
-                    params: { userId: commission.user_id }
-                  })}
-                >
-                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>
-                    Solicitar comisión
-                  </Text>
-                </TouchableOpacity>
+                {/* Botón para editar commission si es mi perfil */}
+                {isMyProfile ? (
+                  <TouchableOpacity
+                    style={{
+                      marginTop: 12,
+                      backgroundColor: '#007b7f',
+                      borderRadius: 20,
+                      paddingVertical: 6,
+                      paddingHorizontal: 16,
+                    }}
+                    onPress={() => router.push('/edit_commission')}
+                  >
+                    <Text style={{ color: '#fff' }}>Editar</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    style={{
+                      marginTop: 18,
+                      backgroundColor: '#007b7f',
+                      borderRadius: 20,
+                      paddingVertical: 10,
+                      paddingHorizontal: 30,
+                    }}
+                    onPress={() => {
+                      if (userData?.id) {
+                        router.push({
+                          pathname: '/request-commission',
+                          params: { artistId: userData.id }
+                        });
+                      } else {
+                        alert("No se ha podido obtener el id del artista");
+                      }
+                    }}
+                  >
+                    <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>
+                      Solicitar comisión
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </>
             ) : (
-              <Text style={styles.placeholder}>No tiene commission publicada</Text>
+              // Si es mi perfil, botón para crear commission
+              isMyProfile ? (
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: '#e1f3f2',
+                    padding: 10,
+                    borderRadius: 20,
+                    alignSelf: 'center',
+                    marginBottom: 10,
+                    marginTop: 10,
+                  }}
+                  onPress={() => router.push('/edit_commission')}
+                >
+                  <Text style={{ color: '#007b7f', fontWeight: 'bold' }}>
+                    Crear commission
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <Text style={styles.placeholder}>No tiene commission publicada</Text>
+              )
             )}
           </View>
         )}
@@ -202,7 +255,7 @@ export default function UserProfile() {
             )}
             keyExtractor={(item) => item.id}
           />
-        )} 
+        )}
       </View>
     </View>
   );
@@ -254,6 +307,20 @@ const styles = StyleSheet.create({
   },
   icon: {
     fontSize: 18,
+  },
+  editProfileButton: {
+    position: 'absolute',
+    top: 55,
+    right: 20,
+    backgroundColor: '#007b7f',
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    zIndex: 10,
+  },
+  editProfileButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
   descriptionBox: {
     marginBottom: 10,

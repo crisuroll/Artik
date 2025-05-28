@@ -1,98 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { View, TextInput, Button, Alert, ActivityIndicator, StyleSheet, Text, ScrollView } from 'react-native';
+import { View, TextInput, Button, Alert, ActivityIndicator, StyleSheet, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { supabase } from '../supabase/supabaseClient';
 import { useRouter } from 'expo-router';
 import UploadFile from '../components/UploadFile';
-import { TouchableOpacity } from 'react-native';
+import { useEditProfile } from '../hooks/useAuth';
 
 export default function EditProfile() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [userId, setUserId] = useState(null);
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('');
-  const [bio, setBio] = useState('');
-  const [uploading, setUploading] = useState(false);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      setLoading(true);
-      const { data: authData, error: authError } = await supabase.auth.getUser();
-      if (authError || !authData?.user) {
-        console.log('Error: No se pudo obtener el usuario autenticado.', authError);
-        setLoading(false);
-        return;
-      }
-      const id = authData.user.id;
-      setUserId(id);
-
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('username, email, avatar_url, bio')
-        .eq('id', id)
-        .single();
-
-      if (userError || !userData) {
-        console.log('Error: No se pudieron cargar los datos del usuario.', userError);
-      } else {
-        setUsername(userData.username);
-        setEmail(userData.email);
-        setAvatarUrl(userData.avatar_url || '');
-        setBio(userData.bio || '');
-        console.log('Datos de usuario cargados:', userData);
-      }
-      setLoading(false);
-    };
-
-    fetchUser();
-  }, []);
-
-  const handleSave = async () => {
-    if (!username || !email) {
-      console.log('Error: Username y email son obligatorios.');
-      return;
-    }
-    setSaving(true);
-    console.log('Intentando actualizar usuario con id:', userId);
-    const { error, data } = await supabase
-      .from('users')
-      .update({
-        username,
-        email,
-        avatar_url: avatarUrl,
-        bio,
-      })
-      .eq('id', userId)
-      .select();
-
-    if (error) {
-      console.log('Error: No se pudo actualizar el perfil.', error);
-    } else if (data.length === 0) {
-      console.log('No se encontró ningún usuario para actualizar. userId:', userId);
-    } else {
-      console.log('Perfil actualizado correctamente.', data);
-      router.replace('/my-user');
-    }
-    setSaving(false);
-  };
-
-  const handleSaveProfile = async () => {
-    const { error } = await supabase
-      .from('users')
-      .update({
-        username: username,
-        nickname: nickname,
-      })
-      .eq('id', userId);
-
-    if (error) {
-      Alert.alert("Error", error.message);
-    } else {
-      router.replace('/home');
-    }
-  };
+  const {
+    loading,
+    saving,
+    username, setUsername,
+    email, setEmail,
+    avatarUrl, setAvatarUrl,
+    bio, setBio,
+    uploading, setUploading,
+    handleSave,
+  } = useEditProfile();
 
   if (loading) return (
     <View style={styles.loadingContainer}>

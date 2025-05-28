@@ -1,61 +1,26 @@
-import { Slot, useRouter, usePathname } from "expo-router";
-import { View, ActivityIndicator, StyleSheet, useWindowDimensions } from "react-native";
-import { useEffect, useState } from "react";
-import { supabase } from "../supabase/supabaseClient";
+import { Slot, usePathname } from "expo-router";
+import { useWindowDimensions, View, ActivityIndicator, StyleSheet } from "react-native";
+import { useState } from "react";
 import NavBarMobile from '../components/Navbar-Mobile';
 import HeaderProfile from "../components/HeaderProfile";
 import BarMenu from "../components/BarMenu";
 import DesktopSidebar from '../components/DesktopSidebar';
+import { useAuthLayout } from "../hooks/useSession";
 
 export default function Layout() {
-
-  const router = useRouter();
-  const pathname = usePathname();
-  const toggleMenu = () => setIsMenuVisible(!isMenuVisible);
   const { width } = useWindowDimensions();
   const isDesktop = width >= 1024;
-  const [loading, setLoading] = useState(true);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState(null);
+  const toggleMenu = () => setIsMenuVisible(!isMenuVisible);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        const user = data?.session?.user;
+  const { loading, avatarUrl } = useAuthLayout();
 
-        if (user) {
-          if (pathname === "/login" || pathname === "/register") {
-            router.push("/home");
-          }
-          const { data: perfil } = await supabase
-            .from("users")
-            .select("avatar_url")
-            .eq("id", user.id)
-            .single();
-  
-          if (perfil && perfil.avatar_url) {
-            setAvatarUrl(perfil.avatar_url);
-          }
-            
-        } else if (
-          !user &&
-          pathname !== "/login" &&
-          pathname !== "/register" &&
-          pathname !== "/confirm_email"
-        ) {
-          router.push("/login");
-        }
-
-      } catch (error) {
-        console.error("Error verificando autenticación:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, [pathname]);
+  const pathname = usePathname();
+  const isAuthScreen = pathname === "/login" || pathname === "/register";
+  const isRequestCommission = pathname === "/request-commission";
+  const isEditCommission = pathname.startsWith("/edit_commission");
+  const main = pathname === "/home" || pathname === "/search" || pathname === "/challenges" || pathname === "/gallery" || pathname === "/loaded_challenge" || pathname === "/dm";
+  const isDmChat = pathname.startsWith("/dm/");
 
   if (loading) {
     return (
@@ -64,11 +29,6 @@ export default function Layout() {
       </View>
     );
   }
-
-  const isAuthScreen = pathname === "/login" || pathname === "/register";
-  const isRequestCommission = pathname === "/request-commission";
-  const main = pathname === "/home" || pathname === "/search1" || pathname === "/challenges" || pathname === "/gallery" || pathname === "/loaded_challenge" || pathname === "/dm";
-  const isDmChat = pathname.startsWith("/dm/");
 
   return (
     <View style={{ flex: 1, backgroundColor: "#f6fffe", flexDirection: isDesktop ? 'row' : 'column' }}>
@@ -80,12 +40,12 @@ export default function Layout() {
 
       <View style={{ flex: 1 }}>
         {/* Solo muestra HeaderProfile si no es un chat DM ni /request-commission */}
-        {main && !isDesktop && !isDmChat && !isRequestCommission && (
+        {main && !isDesktop && !isEditCommission && !isDmChat && !isRequestCommission && (
           <HeaderProfile toggleMenu={toggleMenu} avatarUrl={avatarUrl} />
         )}
         <Slot />
         {/* Solo muestra NavBarMobile si no es un chat DM ni /request-commission */}
-        {!isAuthScreen && !isDesktop && !isDmChat && !isRequestCommission && (
+        {!isAuthScreen && !isEditCommission && !isDesktop && !isDmChat && !isRequestCommission && (
           <View>
             <NavBarMobile />
           </View>

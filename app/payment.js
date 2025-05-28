@@ -1,74 +1,309 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { View, Text, ScrollView, StyleSheet, Image, TouchableOpacity, ActivityIndicator, Alert, Modal, TextInput } from "react-native";
-import { getCart } from "../services/cart";
-import { supabase } from "../supabase/supabaseClient";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { usePayment, useHandlePay, useCommissionById } from "../hooks/useShop";
 
 export default function PaymentPage() {
-  const [cart, setCart] = useState([]);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const commissionId = params.commissionId;
 
-  const [address, setAddress] = useState({
-    name: "Cristina Cañadas García",
-    street: "C/ Del Arzobispo Francisco de la Cuesta, 13",
-    postal: "28380, Colmenar de Oreja",
+  const {
+    cart, loading,
+    address, setAddress,
+    phone, setPhone,
+    payment, setPayment,
+    addressModal, setAddressModal,
+    phoneModal, setPhoneModal,
+    paymentModal, setPaymentModal,
+    tempAddress, setTempAddress,
+    tempPhone, setTempPhone,
+    tempPayment, setTempPayment,
+    cardNumber, setCardNumber,
+    cardHolder, setCardHolder,
+    cardExpiry, setCardExpiry,
+    cardCVV, setCardCVV,
+    PROTECTION_FEE,
+    SHIPPING,
+    SHIPPING_DISCOUNT,
+    orderTotal,
+    totalToPay,
+    saveAddress,
+    savePhone,
+    savePayment,
+  } = usePayment();
+
+  const { commission, loadingCommission } = useCommissionById(commissionId);
+
+  const handlePay = useHandlePay({
+    cart,
+    address,
+    phone,
+    payment,
+    totalToPay,
+    commissionId,
+    commission,
   });
-  const [phone, setPhone] = useState("+34 622785741");
-  const [payment, setPayment] = useState("💳 Visa terminada en 8702");
 
-  const [addressModal, setAddressModal] = useState(false);
-  const [phoneModal, setPhoneModal] = useState(false);
-  const [paymentModal, setPaymentModal] = useState(false);
+  if (loadingCommission) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#007b7f" />
+      </View>
+    );
+  }
 
-  const [tempAddress, setTempAddress] = useState(address);
-  const [tempPhone, setTempPhone] = useState(phone);
-  const [tempPayment, setTempPayment] = useState(payment);
+  // Si hay commissionId, muestra solo la comisión
+  if (commissionId && commission) {
+    // Calcula totales igual que el carrito
+    const commissionPrice = commission.price || 0;
+    const PROTECTION_FEE = 0.99;
+    const SHIPPING = 3.99;
+    const SHIPPING_DISCOUNT = commissionPrice > 30 ? SHIPPING : 0;
+    const orderTotal = commissionPrice;
+    const totalToPay = orderTotal + PROTECTION_FEE + SHIPPING - SHIPPING_DISCOUNT;
 
-  const [cardNumber, setCardNumber] = useState("");
-  const [cardHolder, setCardHolder] = useState("");
-  const [cardExpiry, setCardExpiry] = useState("");
-  const [cardCVV, setCardCVV] = useState("");
+    return (
+      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
+        <Text style={styles.title}>Resumen de tu pedido</Text>
+        <View style={styles.summaryCard}>
+          <SummaryRow label="Pedido" value={`${orderTotal.toFixed(2)} €`} />
+          <SummaryRow label="Tasa de protección" value={`${PROTECTION_FEE.toFixed(2)} €`} />
+          <SummaryRow label="Envío" value={`${SHIPPING.toFixed(2)} €`} />
+          <SummaryRow label="Envío (Gratis)" value={`-${SHIPPING_DISCOUNT.toFixed(2)} €`} green />
+          <View style={styles.summaryTotalRow}>
+            <Text style={styles.summaryTotalLabel}>Total a pagar</Text>
+            <Text style={styles.summaryTotalValue}>{totalToPay.toFixed(2)} €</Text>
+          </View>
+        </View>
 
-  const PROTECTION_FEE = 2.45;
-  const SHIPPING = 2.59;
-  const SHIPPING_DISCOUNT = 2.59;
+        <Text style={styles.sectionTitle}>Comisión</Text>
+        <View style={styles.productCard}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.productName}>Tipo: {commission.type}</Text>
+            <Text style={styles.productDesc}>Nº personajes: {commission.num_characters}</Text>
+            <Text style={styles.productDesc}>Tamaño: {commission.size}</Text>
+            <Text style={styles.productDesc}>Descripción: {commission.description}</Text>
+            <Text style={styles.productDesc}>Estado: {commission.status}</Text>
+          </View>
+          <Text style={styles.productPrice}>{commissionPrice.toFixed(2)} €</Text>
+        </View>
 
-  useEffect(() => {
-    const fetchCart = async () => {
-      setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setCart([]);
-        setLoading(false);
-        return;
-      }
-      const items = await getCart(user.id);
-      setCart(items);
-      setLoading(false);
-    };
-    fetchCart();
-  }, []);
+        <Text style={styles.sectionTitle}>Dirección</Text>
+        <View style={styles.infoCard}>
+          <Text style={styles.infoBold}>{address.name}</Text>
+          <Text>{address.street}</Text>
+          <Text>{address.postal}</Text>
+          <TouchableOpacity style={styles.editBtn} onPress={() => {
+            setTempAddress(address);
+            setAddressModal(true);
+          }}>
+            <Text style={styles.editBtnText}>Editar</Text>
+          </TouchableOpacity>
+        </View>
 
-  const orderTotal = cart.reduce((sum, item) => sum + (item.product?.price || 0) * item.quantity, 0);
-  const totalToPay = orderTotal + PROTECTION_FEE + SHIPPING - SHIPPING_DISCOUNT;
+        <Text style={styles.sectionTitle}>Tipo de entrega</Text>
+        <View style={styles.infoCard}>
+          <Text>📍 En punto de recogida (Gratis)</Text>
+          <Text style={{ color: "#888" }}>En el punto de recogida en 2 - 5 días laborables</Text>
+        </View>
 
-  const handlePay = () => {
-    Alert.alert("Pago", "¡Gracias por tu compra! (Aquí iría la lógica de pago)");
-  };
+        <Text style={styles.sectionTitle}>Datos de contacto</Text>
+        <View style={styles.infoCard}>
+          <Text>{phone}</Text>
+          <TouchableOpacity style={styles.editBtn} onPress={() => {
+            setTempPhone(phone);
+            setPhoneModal(true);
+          }}>
+            <Text style={styles.editBtnText}>Editar</Text>
+          </TouchableOpacity>
+        </View>
 
-  const saveAddress = () => {
-    setAddress(tempAddress);
-    setAddressModal(false);
-  };
-  const savePhone = () => {
-    setPhone(tempPhone);
-    setPhoneModal(false);
-  };
-  const savePayment = () => {
-    setPayment(tempPayment);
-    setPaymentModal(false);
-  };
+        <Text style={styles.sectionTitle}>Método de pago</Text>
+        <View style={styles.infoCard}>
+          {/* Selector de métodos */}
+          <TouchableOpacity
+            style={[
+              styles.paymentOption,
+              payment.type === "card" && styles.paymentOptionSelected,
+            ]}
+            onPress={() => setPayment({ type: "card", label: payment.label || "💳 Tarjeta de crédito" })}
+          >
+            <Text style={styles.paymentOptionText}>💳 Tarjeta de crédito</Text>
+            {payment.type === "card" && (
+              <TouchableOpacity
+                style={styles.editBtn}
+                onPress={() => {
+                  setCardNumber("");
+                  setCardHolder("");
+                  setCardExpiry("");
+                  setCardCVV("");
+                  setPaymentModal(true);
+                }}
+              >
+                <Text style={styles.editBtnText}>Editar</Text>
+              </TouchableOpacity>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.paymentOption,
+              payment.type === "paypal" && styles.paymentOptionSelected,
+            ]}
+            onPress={() => setPayment({ type: "paypal", label: "🟦 PayPal" })}
+          >
+            <Text style={styles.paymentOptionText}>🟦 PayPal</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.paymentOption,
+              payment.type === "apple" && styles.paymentOptionSelected,
+            ]}
+            onPress={() => setPayment({ type: "apple", label: " Apple Pay" })}
+          >
+            <Text style={styles.paymentOptionText}> Apple Pay</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.paymentOption,
+              payment.type === "kofi" && styles.paymentOptionSelected,
+            ]}
+            onPress={() => setPayment({ type: "kofi", label: "☕ Ko-Fi" })}
+          >
+            <Text style={styles.paymentOptionText}>☕ Ko-Fi</Text>
+          </TouchableOpacity>
+          <Text style={{ marginTop: 10, color: "#007b7f", fontWeight: "bold" }}>
+            {payment.label}
+          </Text>
+        </View>
+
+        <TouchableOpacity style={styles.payBtn} onPress={handlePay}>
+          <Text style={styles.payBtnText}>Pagar {totalToPay.toFixed(2)} €</Text>
+        </TouchableOpacity>
+
+        {/* MODALS (puedes dejar los mismos que ya tienes abajo) */}
+        <Modal visible={addressModal} transparent animationType="slide">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Editar dirección</Text>
+              <TextInput
+                style={styles.input}
+                value={tempAddress.name}
+                onChangeText={text => setTempAddress({ ...tempAddress, name: text })}
+                placeholder="Nombre"
+              />
+              <TextInput
+                style={styles.input}
+                value={tempAddress.street}
+                onChangeText={text => setTempAddress({ ...tempAddress, street: text })}
+                placeholder="Calle"
+              />
+              <TextInput
+                style={styles.input}
+                value={tempAddress.postal}
+                onChangeText={text => setTempAddress({ ...tempAddress, postal: text })}
+                placeholder="Código postal y ciudad"
+              />
+              <View style={styles.modalBtnRow}>
+                <TouchableOpacity onPress={() => setAddressModal(false)} style={styles.cancelBtn}>
+                  <Text style={styles.cancelBtnText}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={saveAddress} style={styles.saveBtn}>
+                  <Text style={styles.saveBtnText}>Guardar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        <Modal visible={phoneModal} transparent animationType="slide">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Editar teléfono</Text>
+              <TextInput
+                style={styles.input}
+                value={tempPhone}
+                onChangeText={setTempPhone}
+                placeholder="Teléfono"
+                keyboardType="phone-pad"
+              />
+              <View style={styles.modalBtnRow}>
+                <TouchableOpacity onPress={() => setPhoneModal(false)} style={styles.cancelBtn}>
+                  <Text style={styles.cancelBtnText}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={savePhone} style={styles.saveBtn}>
+                  <Text style={styles.saveBtnText}>Guardar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        <Modal visible={paymentModal} transparent animationType="slide">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Editar tarjeta</Text>
+              <TextInput
+                style={styles.input}
+                value={cardNumber}
+                onChangeText={setCardNumber}
+                placeholder="Número de tarjeta"
+                keyboardType="number-pad"
+                maxLength={19}
+              />
+              <TextInput
+                style={styles.input}
+                value={cardHolder}
+                onChangeText={setCardHolder}
+                placeholder="Titular"
+                autoCapitalize="words"
+              />
+              <View style={{ flexDirection: "row", gap: 10 }}>
+                <TextInput
+                  style={[styles.input, { flex: 1 }]}
+                  value={cardExpiry}
+                  onChangeText={setCardExpiry}
+                  placeholder="MM/AA"
+                  maxLength={5}
+                  keyboardType="number-pad"
+                />
+                <TextInput
+                  style={[styles.input, { flex: 1 }]}
+                  value={cardCVV}
+                  onChangeText={setCardCVV}
+                  placeholder="CVV"
+                  maxLength={4}
+                  keyboardType="number-pad"
+                  secureTextEntry
+                />
+              </View>
+              <View style={styles.modalBtnRow}>
+                <TouchableOpacity onPress={() => setPaymentModal(false)} style={styles.cancelBtn}>
+                  <Text style={styles.cancelBtnText}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    if (!cardNumber || !cardHolder || !cardExpiry || !cardCVV) {
+                      Alert.alert("Completa todos los campos de la tarjeta");
+                      return;
+                    }
+                    setPayment({
+                      type: "card",
+                      label: `💳 ${cardNumber.startsWith("4") ? "Visa" : "Tarjeta"} terminada en ${cardNumber.slice(-4)}`
+                    });
+                    setPaymentModal(false);
+                  }}
+                  style={styles.saveBtn}
+                >
+                  <Text style={styles.saveBtnText}>Guardar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      </ScrollView>
+    );
+  }
 
   if (loading) {
     return (

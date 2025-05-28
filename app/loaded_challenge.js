@@ -1,53 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, Image, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { loadChallengePosts } from '../services/challengesService';
-import { getImageSize } from '../services/getImages';
+import { useLoadedChallenge } from '../hooks/useChallenges';
 import Post from '../components/Post';
 
 export default function LoadedChallengePage() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const [challenge, setChallenge] = useState(null);
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [activeMenuPostId, setActiveMenuPostId] = useState(null);
 
+  const { challenge, posts, loading, fetchChallengeAndPosts } = useLoadedChallenge(id);
+
   useEffect(() => {
-    const fetchChallengeAndPosts = async () => {
-      setLoading(true);
-      try {
-        const { challengeData, postsData } = await loadChallengePosts(id);
-        console.log('Challenge data:', challengeData);
-        console.log('Posts data:', postsData);
-
-        setChallenge(challengeData);
-
-        const processedPosts = await Promise.all(
-          postsData.map(async (post) => {
-            if (post.image_url) {
-              try {
-                const { width, height } = await getImageSize(post.image_url);
-                return { ...post, imageUrl: post.image_url, width, height };
-              } catch (error) {
-                console.error('Error processing post image:', error);
-                return { ...post, imageUrl: post.image_url };
-              }
-            }
-            return post;
-          })
-        );
-
-        setPosts(processedPosts);
-      } catch (error) {
-        console.error('Error fetching challenge or posts:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchChallengeAndPosts();
-  }, [id]);
+  }, [fetchChallengeAndPosts]);
 
   const handlePostClick = (postId) => {
     router.push(`/loaded_post?postId=${postId}`);

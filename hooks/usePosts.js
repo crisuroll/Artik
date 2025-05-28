@@ -1,8 +1,35 @@
-import { useState, useEffect } from 'react';
-import { Alert } from 'react-native';
+import { useState, useEffect, useCallback } from 'react';
+import { Alert, Image } from 'react-native';
 import { supabase } from '../supabase/supabaseClient';
-import { fetchPostById, fetchCommentsByPostId, addCommentToPost, loadTimeline, interactWithPost, fetchPostStats, handleInteraction } from '../services/postsService';
+import { fetchPostById, fetchCommentsByPostId, addCommentToPost, loadTimeline, interactWithPost, fetchPostStats, handleInteraction, loadTimelineWithImageSizes, getPostInteractions } from '../services/postsService';
 import { getImageSize } from '../services/getImages';
+import { loadUser } from '../services/usersService';
+import { fetchCategories, fetchStyles, fetchPostsByFilter } from '../services/postsService';
+
+export function useHomePosts() {
+  const [username, setUsername] = useState('');
+  const [userId, setUserId] = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [activeMenuPostId, setActiveMenuPostId] = useState(null);
+
+  const loadUserAndPosts = async () => {
+    const user = await loadUser();
+    if (user?.username) setUsername(user.username);
+    if (user?.userId) setUserId(user.userId);
+    const getPosts = await loadTimelineWithImageSizes();
+    setPosts(getPosts);
+  };
+
+  return {
+    username,
+    userId,
+    posts,
+    setPosts,
+    activeMenuPostId,
+    setActiveMenuPostId,
+    loadUserAndPosts,
+  };
+}
 
 export function useCreatePost() {
   const [categories, setCategories] = useState([]);
@@ -156,6 +183,27 @@ export function useLoadPost(postId) {
   return { post, comments, loading, handleAddComment };
 }
 
+export function usePostInteractions(postId, userId, refresh) {
+  const [likes, setLikes] = useState(0);
+  const [reposts, setReposts] = useState(0);
+  const [shares, setShares] = useState(0);
+
+  useEffect(() => {
+    if (!postId) return;
+    getPostInteractions(postId).then(data => {
+      setLikes(data.likes);
+      setReposts(data.reposts);
+      setShares(data.shares);
+    });
+  }, [postId, refresh]);
+
+  const like = async () => await interactWithPost('likes', userId, postId);
+  const repost = async () => await interactWithPost('reposts', userId, postId);
+  const share = async () => await interactWithPost('shares', userId, postId);
+
+  return { likes, reposts, shares, like, repost, share };
+}
+
 const useSearchPosts = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [posts, setPosts] = useState([]);
@@ -226,26 +274,86 @@ const useSearchPosts = () => {
   };
 };
 
-export default useSearchPosts;
+export function useGallery() {
+  const [activeTab, setActiveTab] = useState('Category');
+  const [categories, setCategories] = useState([]);
+  const [stylesData, setStylesData] = useState([]);
+  const [activeFilter, setActiveFilter] = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-export function usePostInteractions(postId, userId) {
-  const [likes, setLikes] = useState(0);
-  const [reposts, setReposts] = useState(0);
-  const [shares, setShares] = useState(0);
-
+  // Cargar categorías y estilos al inicio
   useEffect(() => {
-    const loadStats = async () => {
-      const stats = await fetchPostStats(postId);
-      setLikes(stats.likes);
-      setReposts(stats.reposts);
-      setShares(stats.shares ?? 0);
+    const fetchData = async () => {
+      try {
+        const [categoriesData, stylesData] = await Promise.all([
+          fetchCategories(),
+          fetchStyles(),
+        ]);
+        setCategories(categoriesData || []);
+        setStylesData(stylesData || []);
+        setActiveFilter((categoriesData?.[0]?.id) || null);
+      } catch (e) {
+        // Manejo de error opcional
+      }
     };
-    if (postId) loadStats();
-  }, [postId]);
+    fetchData();
+  }, []);
 
-  const like = () => handleInteraction('likes', userId, postId, setLikes);
-  const repost = () => handleInteraction('reposts', userId, postId, setReposts);
-  const share = () => handleInteraction('shares', userId, postId, setShares);
+  // Cargar posts cuando cambia el filtro o el tab
+  useEffect(() => {
+    const fetchPosts = async () => {
+      if (!activeFilter) {
+        setPosts([]);
+        return;
+      }
+      setLoading(true);
+      try {
+        const data = await fetchPostsByFilter({
+          filterType: activeTab,
+          filterId: activeFilter,
+        });
+        const postsWithDimensions = await Promise.all(
+          (data || []).map(
+            (post) =>
+              new Promise((resolve) => {
+                Image.getSize(
+                  post.image_url,
+                  (width, height) => {
+                    resolve({ ...post, width, height });
+                  },
+                  () => {
+                    resolve({ ...post, width: 200, height: 300 });
+                  }
+                );
+              })
+          )
+        );
+        setPosts(postsWithDimensions);
+      } catch (e) {
+        setPosts([]);
+      }
+      setLoading(false);
+    };
+    fetchPosts();
+  }, [activeFilter, activeTab]);
 
-  return { likes, reposts, shares, like, repost, share };
+  const getFilters = useCallback(
+    () => (activeTab === 'Category' ? categories : stylesData),
+    [activeTab, categories, stylesData]
+  );
+
+  return {
+    activeTab,
+    setActiveTab,
+    categories,
+    stylesData,
+    activeFilter,
+    setActiveFilter,
+    posts,
+    loading,
+    getFilters,
+  };
 }
+
+export default useSearchPosts;

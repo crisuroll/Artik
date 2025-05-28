@@ -88,7 +88,6 @@ export const loadUserPosts = async (userId) => {
   }
 };
 
-
 export async function loadUserCommission(userId) {
   const { data, error } = await supabase
     .from('commissions_tab')
@@ -173,3 +172,35 @@ export const loadUserReposts = async (userId) => {
     return [];
   }
 };
+
+export const createProduct = async ({ name, description, price, stock, user_id, product_url }) => {
+  const { error } = await supabase.from('products').insert([
+    { name, description, price, stock, user_id, product_url }
+  ]);
+  if (error) throw error;
+};
+
+export async function fetchUserProfile(userId) {
+  const { data, error } = await supabase
+    .from('users')
+    .select('username, email, avatar_url, bio')
+    .eq('id', userId)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateUserProfile({ userId, username, email, avatarUrl, bio }) {
+  const { error, data } = await supabase
+    .from('users')
+    .update({
+      username,
+      email,
+      avatar_url: avatarUrl,
+      bio,
+    })
+    .eq('id', userId)
+    .select();
+  if (error) throw error;
+  return data;
+}

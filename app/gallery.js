@@ -1,73 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import MasonryList from 'react-native-masonry-list';
-import { supabase } from '../supabase/supabaseClient';
+import { useGallery } from '../hooks/usePosts';
 
 export default function Gallery() {
-  const [activeTab, setActiveTab] = useState('Category');
-  const [categories, setCategories] = useState([]);
-  const [stylesData, setStylesData] = useState([]);
-  const [activeFilter, setActiveFilter] = useState(null);
-  const [posts, setPosts] = useState([]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const { data: categoriesData, error: categoriesError } = await supabase.from('categories').select('*');
-      const { data: stylesData, error: stylesError } = await supabase.from('styles').select('*');
-
-      if (categoriesError) console.error('Error fetching categories:', categoriesError);
-      if (stylesError) console.error('Error fetching styles:', stylesError);
-
-      setCategories(categoriesData || []);
-      setStylesData(stylesData || []);
-      setActiveFilter(categoriesData?.[0]?.id || null);
-    };
-
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    const fetchPosts = async () => {
-      if (!activeFilter) {
-        setPosts([]);
-        return;
-      }
-
-      setPosts([]);
-
-      const filterColumn = activeTab === 'Category' ? 'category_id' : 'style_id';
-      const { data, error } = await supabase
-        .from('posts')
-        .select('*')
-        .eq(filterColumn, activeFilter);
-
-      if (error) {
-        console.error('Error fetching posts:', error);
-      } else {
-        const postsWithDimensions = await Promise.all(
-          (data || []).map(async (post) => {
-            return new Promise((resolve) => {
-              Image.getSize(
-                post.image_url,
-                (width, height) => {
-                  resolve({ ...post, width, height });
-                },
-                () => {
-                  resolve({ ...post, width: 200, height: 300 });
-                }
-              );
-            });
-          })
-        );
-
-        setPosts(postsWithDimensions);
-      }
-    };
-
-    fetchPosts();
-  }, [activeFilter, activeTab]);
-
-  const getFilters = () => (activeTab === 'Category' ? categories : stylesData);
+  const {
+    activeTab,
+    setActiveTab,
+    categories,
+    stylesData,
+    activeFilter,
+    setActiveFilter,
+    posts,
+    loading,
+    getFilters,
+  } = useGallery();
 
   return (
     <View style={styles.container}>
@@ -116,7 +63,9 @@ export default function Gallery() {
         </ScrollView>
       </View>
 
-      {posts.length === 0 ? (
+      {loading ? (
+        <Text style={styles.noPostsText}>Cargando...</Text>
+      ) : posts.length === 0 ? (
         <Text style={styles.noPostsText}>No posts available for the selected filter.</Text>
       ) : (
         <MasonryList

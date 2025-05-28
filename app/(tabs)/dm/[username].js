@@ -99,7 +99,7 @@ export default function ChatWithUser() {
         sender_id: currentUserId,
         receiver_id: otherUserId,
         content: input,
-        is_commission_related: false,
+        is_commission_related: isCommissionChat,
       },
     ]);
 
@@ -190,7 +190,7 @@ export default function ChatWithUser() {
       </View>
 
       {/* Información de la última comisión (si existe) */}
-      {lastCommission && (
+      {isCommissionChat && lastCommission && (
         <View style={{
           margin: 16,
           backgroundColor: "#fff",

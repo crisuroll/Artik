@@ -1,24 +1,24 @@
 import { supabase } from '../supabase/supabaseClient';
 import { useState, useEffect } from 'react';
 
-export const loadChallengePosts = async (challengeId) => {
-  const { data: challengeData, error: challengeError } = await supabase
+export async function fetchChallengeById(challengeId) {
+  const { data, error } = await supabase
     .from('challenges')
     .select('*')
     .eq('id', challengeId)
     .single();
+  if (error) throw error;
+  return data;
+}
 
-  if (challengeError) throw challengeError;
-
-  const { data: postsData, error: postsError } = await supabase
+export async function fetchChallengePosts(challengeId) {
+  const { data, error } = await supabase
     .from('posts')
-    .select('*')
+    .select('id, image_url, user_id, users(username)')
     .eq('challenge_id', challengeId);
-
-  if (postsError) throw postsError;
-
-  return { challengeData, postsData };
-};
+  if (error) throw error;
+  return data;
+}
 
 export function useLoadChallenge(challengeId) {
   const [challenge, setChallenge] = useState(null);
@@ -51,4 +51,37 @@ export function useLoadChallenge(challengeId) {
   }, [challengeId]);
 
   return { challenge, loading };
+}
+
+export async function fetchChallengeWithPosts(challengeId) {
+  const { data: challengeData, error: challengeError } = await supabase
+    .from('challenges')
+    .select('*')
+    .eq('id', challengeId)
+    .single();
+  if (challengeError) throw challengeError;
+  const { data: postsData, error: postsError } = await supabase
+    .from('posts')
+    .select('*')
+    .eq('challenge_id', challengeId);
+  if (postsError) throw postsError;
+
+  return { challengeData, postsData };
+}
+
+export async function loadChallengePosts(challengeId) {
+  const { data: challengeData, error: challengeError } = await supabase
+    .from('challenges')
+    .select('*')
+    .eq('id', challengeId)
+    .single();
+  if (challengeError) throw challengeError;
+
+  const { data: postsData, error: postsError } = await supabase
+    .from('posts')
+    .select('*')
+    .eq('challenge_id', challengeId);
+  if (postsError) throw postsError;
+
+  return { challengeData, postsData };
 }

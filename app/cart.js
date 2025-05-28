@@ -1,40 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
-import { getCart, removeFromCart } from '../services/cart';
-import { supabase } from '../supabase/supabaseClient';
+import React from 'react';
+import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import { usePayment } from '../hooks/useShop';
 
 export default function CartScreen() {
-  const [cart, setCart] = useState([]);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
-
-  useEffect(() => {
-    const fetchCart = async () => {
-      setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setCart([]);
-        setLoading(false);
-        return;
-      }
-      const items = await getCart(user.id);
-      setCart(items);
-      setLoading(false);
-    };
-    fetchCart();
-  }, []);
-
-  const handleRemove = async (cartItemId) => {
-    await removeFromCart(cartItemId);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const items = await getCart(user.id);
-      setCart(items);
-    }
-  };
+  const { cart, loading, removeFromCart } = usePayment(); // <-- Asegúrate de que usePayment devuelve removeFromCart
 
   const total = cart.reduce((sum, item) => sum + (item.product?.price || 0) * item.quantity, 0);
+
+  // Define la función handleRemove
+  const handleRemove = (id) => {
+    removeFromCart(id);
+  };
 
   if (loading) {
     return (

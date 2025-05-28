@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, FlatLi
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useLoadPost } from '../hooks/usePosts';
 import { usePostInteractions } from '../hooks/usePosts';
+import { getPostInteractions } from '../services/postsService';
 
 export default function PostDetailScreen() {
   const router = useRouter();

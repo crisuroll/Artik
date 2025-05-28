@@ -1,41 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import { View, FlatList, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { loadTimeline } from '../services/postsService';
-import { loadUser } from '../services/usersService';
-import { getImageSize } from '../services/getImages';
-import { interactWithPost } from '../services/postsService';
+import { interactWithPost, getPostInteractions } from '../services/postsService';
 import Post from '../components/Post';
 import CreatePostButton from '../components/CreatePostButton';
+import { useHomePosts } from '../hooks/usePosts';
 
 export default function Home() {
-  const [username, setUsername] = useState('');
-  const [userId, setUserId] = useState(null);
-  const [posts, setPosts] = useState([]);
-  const [activeMenuPostId, setActiveMenuPostId] = useState(null);
   const router = useRouter();
+  const {
+    username,
+    userId,
+    posts,
+    setPosts,
+    activeMenuPostId,
+    setActiveMenuPostId,
+    loadUserAndPosts,
+  } = useHomePosts();
 
   useEffect(() => {
-    const loadUserAndPosts = async () => {
-      const user = await loadUser();
-      if (user?.username) setUsername(user.username);
-      if (user?.userId) setUserId(user.userId);
-      const fetchedPosts = await loadTimeline();
-      const getPosts = await Promise.all(
-        fetchedPosts.map(async (post) => {
-          if (post.imageUrl) {
-            try {
-              const { width, height } = await getImageSize(post.imageUrl);
-              return { ...post, width, height };
-            } catch (error) {
-              return post;
-            }
-          }
-          return post;
-        })
-      );
-      setPosts(getPosts);
-    };
     loadUserAndPosts();
   }, []);
 
