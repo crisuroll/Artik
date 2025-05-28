@@ -7,8 +7,6 @@ import { useEditCommission } from '../hooks/useShop';
 
 function OptionListInput({ label, options, setOptions, placeholder }) {
   const [inputs, setInputs] = useState(['']);
-
-  // Asegura que options siempre sea un array
   const safeOptions = Array.isArray(options) ? options : [];
 
   useEffect(() => {

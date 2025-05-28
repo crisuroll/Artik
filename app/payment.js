@@ -53,9 +53,7 @@ export default function PaymentPage() {
     );
   }
 
-  // Si hay commissionId, muestra solo la comisión
   if (commissionId && commission) {
-    // Calcula totales igual que el carrito
     const commissionPrice = commission.price || 0;
     const PROTECTION_FEE = 0.99;
     const SHIPPING = 3.99;

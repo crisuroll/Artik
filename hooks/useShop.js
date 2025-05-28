@@ -274,7 +274,6 @@ export function usePayment() {
   };
 }
 
-// Hook para cargar comisión por ID
 export function useCommissionById(commissionId) {
   const [commission, setCommission] = useState(null);
   const [loadingCommission, setLoadingCommission] = useState(!!commissionId);
@@ -297,7 +296,6 @@ export function useCommissionById(commissionId) {
   return { commission, loadingCommission };
 }
 
-// Hook para manejar el pago
 export function useHandlePay({
   cart,
   address,
@@ -316,7 +314,6 @@ export function useHandlePay({
       return;
     }
 
-    // Pago de productos del carrito
     if (cart.length > 0) {
       const { data: orderData, error: orderError } = await supabase
         .from("orders")
@@ -359,7 +356,6 @@ export function useHandlePay({
       return;
     }
 
-    // Pago de comisión
     if (commissionId && commission) {
       const { data: orderData, error: orderError } = await supabase
         .from("orders")
