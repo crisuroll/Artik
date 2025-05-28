@@ -30,7 +30,6 @@ const BarMenu = ({ onClose }) => {
       const { data } = await supabase.auth.getSession();
       if (data?.session?.user) {
         setUserEmail(data.session.user.email);
-        // Obtener el username del usuario autenticado
         const { data: userData } = await supabase
           .from('users')
           .select('username')
@@ -58,7 +57,6 @@ const BarMenu = ({ onClose }) => {
     ]).start(() => onClose());
   };
 
-  // Cambia aquí la redirección
   const handleMyProfile = () => {
     if (username) {
       router.push(`/${username}`);

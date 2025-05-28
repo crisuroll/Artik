@@ -1,15 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { View, TextInput, Button, Alert, ActivityIndicator, StyleSheet, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { supabase } from '../supabase/supabaseClient';
+import { View, TextInput, ActivityIndicator, StyleSheet, Text, ScrollView, Dimensions, TouchableOpacity, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import UploadFile from '../components/UploadFile';
 import { useEditProfile } from '../hooks/useAuth';
+import BackButton from '../components/BackButton';
+
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
 
 export default function EditProfile() {
   const router = useRouter();
   const {
     loading,
     saving,
+    nickname, setNickname,
     username, setUsername,
     email, setEmail,
     avatarUrl, setAvatarUrl,
@@ -17,6 +20,8 @@ export default function EditProfile() {
     uploading, setUploading,
     handleSave,
   } = useEditProfile();
+
+  console.log({ nickname, username, email, avatarUrl, bio });
 
   if (loading) return (
     <View style={styles.loadingContainer}>
@@ -26,6 +31,7 @@ export default function EditProfile() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <BackButton fallback="/profile" />
       <Text style={styles.title}>Editar perfil</Text>
 
       <View style={styles.avatarSection}>
@@ -39,12 +45,23 @@ export default function EditProfile() {
       </View>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Nombre de usuario</Text>
+        <Text style={styles.label}>Nombre</Text>
+        <TextInput
+          style={styles.input}
+          value={nickname}
+          onChangeText={setNickname}
+          placeholder="Nombre"
+          placeholderTextColor="#bbb"
+        />
+      </View>
+
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Usuario</Text>
         <TextInput
           style={styles.input}
           value={username}
           onChangeText={setUsername}
-          placeholder="Nombre de usuario"
+          placeholder="Usuario"
           placeholderTextColor="#bbb"
         />
       </View>
@@ -73,16 +90,19 @@ export default function EditProfile() {
         />
       </View>
 
-      <TouchableOpacity
-        style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+      <Pressable
         onPress={handleSave}
         disabled={saving}
-        activeOpacity={0.8}
+        style={({ pressed }) => [
+          styles.saveButton,
+          saving && styles.saveButtonDisabled,
+          { backgroundColor: pressed ? '#5ea8a0' : '#70c0b7' }
+        ]}
       >
         <Text style={styles.saveButtonText}>
           {saving ? "Guardando..." : "Guardar cambios"}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
     </ScrollView>
   );
 }
@@ -90,8 +110,7 @@ export default function EditProfile() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
-    backgroundColor: '#F6F6F8',
+    padding: 40,
   },
   loadingContainer: {
     flex: 1,
@@ -102,9 +121,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 30,
     color: '#70c0b7',
-    marginBottom: 24,
-    alignSelf: 'center',
   },
   avatarSection: {
     alignItems: 'center',
@@ -122,6 +141,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
+    overflow: 'hidden',
   },
   avatarPlaceholder: {
     width: 90,
@@ -139,35 +159,42 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#70c0b7',
     marginBottom: 6,
-    marginLeft: 2,
+    marginLeft: windowWidth < 426 ?
+      2 :
+        windowWidth < 769 ? 
+          170 : 590,
+    
   },
   input: {
+    height: 50,
+    width: 350,
+    alignSelf: 'center',
+    borderWidth: 2,
+    borderColor: '#ccc',
+    borderRadius: 16,
+    paddingHorizontal: 15,
+    marginBottom: 15,
     backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 10,
-    padding: 12,
-    fontSize: 16,
-    color: '#22223B',
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
-    shadowOffset: { width: 0, height: 1 },
+    color: '#333',
+    outlineColor: '#70c0b7',
   },
   bioInput: {
     height: 80,
     textAlignVertical: 'top',
+    paddingTop: 12,
   },
   saveButton: {
-    backgroundColor: '#70c0b7',
-    paddingVertical: 14,
-    borderRadius: 10,
+    height: 45,
+    width: 160,
+    borderRadius: 24,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 16,
-    shadowColor: '#70c0b7',
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
+    alignSelf: 'center',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
   saveButtonDisabled: {
     backgroundColor: '#BDBDBD',
@@ -175,7 +202,8 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 17,
+    fontSize: 14,
     letterSpacing: 0.5,
+    textAlign: 'center',
   },
 });

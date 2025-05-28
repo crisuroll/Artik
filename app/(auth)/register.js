@@ -1,31 +1,26 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Pressable, Alert } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Dimensions, Pressable, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useRegister } from '../../hooks/useAuth';
 
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
+
 export default function Register() {
+
   const router = useRouter();
   const { register, loading } = useRegister();
-
-  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const handleRegister = () => {
-    register(username, email, password, confirmPassword);
+    register(email, password, confirmPassword);
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Registro</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Nombre de usuario"
-        placeholderTextColor="#666"
-        value={username}
-        onChangeText={setUsername}
-      />
 
       <TextInput
         style={styles.input}
@@ -55,7 +50,7 @@ export default function Register() {
         secureTextEntry
       />
 
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+      <View style={styles.buttonsContainer}>
         <Pressable onPress={() => router.push('/login')}>
           <Text style={styles.link}>¿Ya tienes cuenta? Inicia sesión</Text>
         </Pressable>
@@ -77,7 +72,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    padding: 20
   },
   title: {
     fontSize: 24,
@@ -88,13 +82,30 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 50,
-    borderWidth: 1,
+    width: 350,
+    alignSelf: 'center',
+    borderWidth: 2,
     borderColor: '#ccc',
     borderRadius: 16,
     paddingHorizontal: 15,
     marginBottom: 15,
     backgroundColor: '#fff',
-    color: '#333'
+    color: '#333',
+    outlineColor: '#70c0b7',
+  },
+  buttonsContainer: {
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center',
+    paddingLeft: windowWidth < 426 ?
+      10 :
+        windowWidth < 769 ? 
+          140 : 700,
+          
+    paddingRight: windowWidth < 426 ?
+      10 :
+        windowWidth < 769 ? 
+          140 : 700,
   },
   button: {
     height: 45,
@@ -114,6 +125,9 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
   link: {
-    color: '#5ea8a0'
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 17,
+    letterSpacing: 0.5,
   }
 });

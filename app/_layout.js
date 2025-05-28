@@ -16,9 +16,9 @@ export default function Layout() {
   const { loading, avatarUrl } = useAuthLayout();
 
   const pathname = usePathname();
-  const isAuthScreen = pathname === "/login" || pathname === "/register";
+  const isAuthScreen = pathname === "/login" || pathname === "/register" || pathname === "/confirm_email";
   const isRequestCommission = pathname === "/request-commission";
-  const isEditCommission = pathname.startsWith("/edit_commission");
+  const isEditScreen = pathname.startsWith("/edit_commission") || pathname.startsWith("/edit_profile");
   const main = pathname === "/home" || pathname === "/search" || pathname === "/challenges" || pathname === "/gallery" || pathname === "/loaded_challenge" || pathname === "/dm";
   const isDmChat = pathname.startsWith("/dm/");
 
@@ -32,7 +32,7 @@ export default function Layout() {
 
   return (
     <View style={{ flex: 1, backgroundColor: "#f6fffe", flexDirection: isDesktop ? 'row' : 'column' }}>
-      {isDesktop && (
+      {!isAuthScreen && isDesktop && (
         <View style={styles.desktopSidebar}>
           <DesktopSidebar />
         </View>
@@ -40,12 +40,12 @@ export default function Layout() {
 
       <View style={{ flex: 1 }}>
         {/* Solo muestra HeaderProfile si no es un chat DM ni /request-commission */}
-        {main && !isDesktop && !isEditCommission && !isDmChat && !isRequestCommission && (
+        {main && !isDesktop && !isEditScreen && !isDmChat && !isRequestCommission && (
           <HeaderProfile toggleMenu={toggleMenu} avatarUrl={avatarUrl} />
         )}
         <Slot />
         {/* Solo muestra NavBarMobile si no es un chat DM ni /request-commission */}
-        {!isAuthScreen && !isEditCommission && !isDesktop && !isDmChat && !isRequestCommission && (
+        {!isAuthScreen && !isEditScreen && !isDesktop && !isDmChat && !isRequestCommission && (
           <View>
             <NavBarMobile />
           </View>

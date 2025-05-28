@@ -92,8 +92,8 @@ export const useRegister = () => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const register = async (username, email, password, confirmPassword) => {
-    if (!username || !email || !password || !confirmPassword) {
+  const register = async (email, password, confirmPassword) => {
+    if (!email || !password || !confirmPassword) {
       Alert.alert("Error", "You must fill all fields.");
       return;
     }
@@ -130,6 +130,7 @@ export function useEditProfile() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [userId, setUserId] = useState(null);
+  const [nickname, setNickname] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
@@ -148,6 +149,7 @@ export function useEditProfile() {
       setUserId(id);
       try {
         const userData = await fetchUserProfile(id);
+        setNickname(userData.nickname || '');
         setUsername(userData.username);
         setEmail(userData.email);
         setAvatarUrl(userData.avatar_url || '');
@@ -166,6 +168,7 @@ export function useEditProfile() {
     try {
       await updateUserProfile({
         userId,
+        nickname,
         username,
         email,
         avatarUrl,
@@ -176,12 +179,13 @@ export function useEditProfile() {
       // Manejo de error opcional
     }
     setSaving(false);
-  }, [userId, username, email, avatarUrl, bio, router]);
+  }, [userId, nickname, username, email, avatarUrl, bio, router]);
 
   return {
     loading,
     saving,
     userId,
+    nickname, setNickname,
     username, setUsername,
     email, setEmail,
     avatarUrl, setAvatarUrl,
@@ -229,7 +233,6 @@ export function useMyUser(profileUserId) {
     fetchUserData();
   }, []);
 
-  // Refresca productos al volver al foco
   const refreshProducts = useCallback(async () => {
     if (!userId) return;
     const products = await loadUserProducts(userId);

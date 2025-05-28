@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Pressable, Alert } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Pressable, Dimensions, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useLogin } from '../../hooks/useAuth';
+
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
 
 export default function Login () {
   const router = useRouter();
@@ -36,7 +39,7 @@ export default function Login () {
         secureTextEntry
       />
 
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+      <View style={styles.buttonsContainer}>
         <Pressable onPress={() => router.push('/register')}>
           <Text style={styles.link}>¿No tienes cuenta? Regístrate</Text>
         </Pressable>
@@ -58,7 +61,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    padding: 20
   },
   title: {
     fontSize: 24,
@@ -69,18 +71,36 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 50,
-    borderWidth: 1,
+    width: 350,
+    alignSelf: 'center',
+    borderWidth: 2,
     borderColor: '#ccc',
     borderRadius: 16,
     paddingHorizontal: 15,
     marginBottom: 15,
     backgroundColor: '#fff',
-    color: '#333'
+    color: '#333',
+    outlineColor: '#70c0b7',
+  },
+  buttonsContainer: {
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center',
+    paddingLeft: windowWidth < 426 ?
+      10 :
+        windowWidth < 769 ? 
+          140 : 700,
+          
+    paddingRight: windowWidth < 426 ?
+      10 :
+        windowWidth < 769 ? 
+          140 : 700,
   },
   button: {
     height: 45,
     width: 120,
     borderRadius: 24,
+    
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
