@@ -5,11 +5,9 @@ import { usePayment } from '../hooks/useShop';
 
 export default function CartScreen() {
   const router = useRouter();
-  const { cart, loading, removeFromCart } = usePayment(); // <-- Asegúrate de que usePayment devuelve removeFromCart
+  const { cart, loading, removeFromCart } = usePayment();
 
   const total = cart.reduce((sum, item) => sum + (item.product?.price || 0) * item.quantity, 0);
-
-  // Define la función handleRemove
   const handleRemove = (id) => {
     removeFromCart(id);
   };
