@@ -6,12 +6,15 @@ import Post from '../components/Post';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { usePublicUser } from '../hooks/useAuth';
 import { loadUser } from '../services/usersService';
+import { interactWithPost } from '../services/postsService';
+import { usePostStats } from '../hooks/usePostStats';
 
 export default function UserProfile() {
   const { username } = useLocalSearchParams();
   const router = useRouter();
   const [myUser, setMyUser] = useState(null);
   const [loadingMyUser, setLoadingMyUser] = useState(true);
+  const [refreshStats, setRefreshStats] = useState(0);
   const {
     userData,
     userPosts,
@@ -41,6 +44,27 @@ export default function UserProfile() {
   const tabs = ['Posts', 'Shop', 'Commissions', 'Repost'];
   const [activeTab, setActiveTab] = React.useState('Posts');
 
+  const handleInteraction = async (type, postId) => {
+    if (!myUser) return;
+    try {
+      await interactWithPost(type, myUser.userId, postId);
+      setRefreshStats((r) => r + 1);
+    } catch (e) {
+      alert('Error al interactuar');
+      console.error(e);
+    }
+  };
+
+  function PostWithStats({ item }) {
+    const stats = usePostStats(item.id, refreshStats);
+    return (
+      <Post
+        item={{ ...item, ...stats }}
+        handleInteraction={isMyProfile ? handleInteraction : undefined}
+      />
+    );
+  }
+
   if (!username) return <Text>No se proporcionó un username</Text>;
   if (loading || loadingMyUser) return <ActivityIndicator style={{ flex: 1 }} size="large" color="#007b7f" />;
 
@@ -48,7 +72,6 @@ export default function UserProfile() {
     <View style={styles.container}>
       <BackButton />
 
-      {/* Botón solo si es mi perfil */}
       {isMyProfile && (
         <TouchableOpacity
           style={styles.editProfileButton}
@@ -70,7 +93,6 @@ export default function UserProfile() {
           {userData?.nickname || 'Usuario'} <Text style={styles.at}>@{userData?.username || ''}</Text>
         </Text>
 
-        {/* Botón de mensaje solo si NO es mi perfil */}
         {!isMyProfile && (
           <TouchableOpacity
             style={styles.mailIcon}
@@ -112,7 +134,7 @@ export default function UserProfile() {
             data={userPosts}
             renderItem={({ item }) => (
               <TouchableOpacity onPress={() => router.push({ pathname: '/loaded_post', params: { postId: item.id } })}>
-                <Post item={item} />
+                <PostWithStats item={item} />
               </TouchableOpacity>
             )}
             keyExtractor={(item) => item.id}
@@ -121,7 +143,6 @@ export default function UserProfile() {
         )}
         {activeTab === 'Shop' && (
           <>
-            {/* Botón para crear producto solo si es mi perfil */}
             {isMyProfile && (
               <TouchableOpacity
                 style={{
@@ -152,7 +173,6 @@ export default function UserProfile() {
               }
               contentContainerStyle={{ paddingBottom: 80 }}
             />
-            {/* Botón carrito solo si NO es mi perfil */}
             {!isMyProfile && (
               <TouchableOpacity
                 onPress={() => router.push('/cart')}
@@ -181,7 +201,6 @@ export default function UserProfile() {
                 ) : null}
                 <Text style={{ fontWeight: 'bold', fontSize: 18, marginTop: 10 }}>{commission.title}</Text>
                 <Text style={{ color: '#555', marginTop: 6, textAlign: 'center' }}>{commission.description}</Text>
-                {/* Botón para editar commission si es mi perfil */}
                 {isMyProfile ? (
                   <TouchableOpacity
                     style={{
@@ -222,7 +241,6 @@ export default function UserProfile() {
                 )}
               </>
             ) : (
-              // Si es mi perfil, botón para crear commission
               isMyProfile ? (
                 <TouchableOpacity
                   style={{
@@ -250,7 +268,7 @@ export default function UserProfile() {
             data={userReposts}
             renderItem={({ item }) => (
               <TouchableOpacity onPress={() => router.push({ pathname: '/loaded_post', params: { postId: item.id } })}>
-                <Post item={item} />
+                <PostWithStats item={item} />
               </TouchableOpacity>
             )}
             keyExtractor={(item) => item.id}

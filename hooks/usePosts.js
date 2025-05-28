@@ -282,7 +282,6 @@ export function useGallery() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Cargar categorías y estilos al inicio
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -300,7 +299,6 @@ export function useGallery() {
     fetchData();
   }, []);
 
-  // Cargar posts cuando cambia el filtro o el tab
   useEffect(() => {
     const fetchPosts = async () => {
       if (!activeFilter) {

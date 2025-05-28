@@ -2,23 +2,44 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, FlatList, Image } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useLoadPost } from '../hooks/usePosts';
-import { usePostInteractions } from '../hooks/usePosts';
-import { getPostInteractions } from '../services/postsService';
+import { loadUser } from '../services/usersService';
+import Svg, { Path } from 'react-native-svg';
+import { getPostInteractions, interactWithPost } from '../services/postsService';
+import PostInteractions from '../components/PostInteractions';
 
 export default function PostDetailScreen() {
   const router = useRouter();
   const { postId } = useLocalSearchParams();
   const { post, comments, loading, handleAddComment } = useLoadPost(postId);
   const [newComment, setNewComment] = useState('');
+  const [userId, setUserId] = useState(null);
+  const [likes, setLikes] = useState(0);
+  const [reposts, setReposts] = useState(0);
 
-  const {
-    likes,
-    reposts,
-    shares,
-    like: handleLike,
-    repost: handleRepost,
-    share: handleShare,
-  } = usePostInteractions(postId, post?.user_id);
+  useEffect(() => {
+    const fetchUserAndStats = async () => {
+      const user = await loadUser();
+      setUserId(user?.userId || null);
+      if (postId) {
+        const stats = await getPostInteractions(postId);
+        setLikes(stats.likes);
+        setReposts(stats.reposts);
+      }
+    };
+    fetchUserAndStats();
+  }, [postId, post]);
+
+  const handleInteraction = async (type) => {
+    if (!userId) return;
+    try {
+      await interactWithPost(type, userId, postId);
+      const stats = await getPostInteractions(postId);
+      setLikes(stats.likes);
+      setReposts(stats.reposts);
+    } catch (e) {
+      // Manejo de error opcional
+    }
+  };
 
   if (loading) {
     return (
@@ -60,17 +81,13 @@ export default function PostDetailScreen() {
         <View style={styles.titleRow}>
           <Text style={styles.title}>{post.title}</Text>
         </View>
-        <View style={styles.actionButtons}>
-          <TouchableOpacity onPress={handleLike} style={styles.actionButton}>
-            <Text style={styles.actionText}>👍 {likes}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleRepost} style={styles.actionButton}>
-            <Text style={styles.actionText}>🔁 {reposts}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleShare} style={styles.actionButton}>
-            <Text style={styles.actionText}>📤 {shares}</Text>
-          </TouchableOpacity>
-        </View>
+                <PostInteractions
+  likes={likes}
+  reposts={reposts}
+  postId={postId}
+  handleInteraction={handleInteraction}
+  style={styles.actionButtons}
+/>
         <Text style={styles.description}>{post.description}</Text>
 
         <View style={styles.detailsBox}>

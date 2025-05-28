@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import Svg, { Path } from 'react-native-svg';
+import PostInteractions from './PostInteractions';
 
 const Post = ({ item, activeMenuPostId, setActiveMenuPostId, handleInteraction, handleOption }) => {
   const router = useRouter();
@@ -51,19 +53,13 @@ const Post = ({ item, activeMenuPostId, setActiveMenuPostId, handleInteraction, 
 
         <Text style={styles.postTitle}>{item.title}</Text>
 
-        <View id="interaction-container" style={styles.interactionContainer}>
-          <TouchableOpacity onPress={() => handleInteraction('likes', item.id)}>
-            <Text style={styles.interactionButton}>👍 {item.likes}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => handleInteraction('reposts', item.id)}>
-            <Text style={styles.interactionButton}>🔄 {item.reposts}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => handleInteraction('comments', item.id)}>
-            <Text style={styles.interactionButton}>💬 {item.comments}</Text>
-          </TouchableOpacity>
-        </View>
+        <PostInteractions
+          likes={item.likes}
+          reposts={item.reposts}
+          postId={item.id}
+          handleInteraction={handleInteraction}
+          style={styles.interactionContainer}
+        />
       </View>
     </View>
   );
