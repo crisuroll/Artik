@@ -38,12 +38,12 @@ export default function CreatePostPage() {
       />
 
       <CustomTextInput
-        placeholder="Title"
+        placeholder="Titulo"
         value={title}
         onChangeText={setTitle}
       />
       <CustomTextInput
-        placeholder="Description"
+        placeholder="Descripcion"
         style={[styles.input, styles.textArea]}
         multiline
         numberOfLines={4}
@@ -58,7 +58,7 @@ export default function CreatePostPage() {
             <Dropdown
               data={categories}
               onChange={setSelectedCategory}
-              placeholder="Select Category"
+              placeholder="Selecciona Categoria"
               value={selectedCategory}
             />
           )}
@@ -70,7 +70,7 @@ export default function CreatePostPage() {
             <Dropdown
               data={artstyles}
               onChange={setSelectedArtstyle}
-              placeholder="Select Style"
+              placeholder="Selecciona Estilo"
               value={selectedArtstyle}
             />
           )}

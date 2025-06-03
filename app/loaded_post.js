@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, ScrollView, FlatList, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TextInput, ScrollView, FlatList, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useLoadPost } from '../hooks/usePosts';
 import { loadUser } from '../services/usersService';
@@ -7,6 +7,7 @@ import Svg, { Path } from 'react-native-svg';
 import { getPostInteractions, interactWithPost } from '../services/postsService';
 import PostInteractions from '../components/PostInteractions';
 import BackButton from '../components/BackButton';
+import { getImageSize } from '../utils/getImageSize';
 
 export default function PostDetailScreen() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function PostDetailScreen() {
   const [userId, setUserId] = useState(null);
   const [likes, setLikes] = useState(0);
   const [reposts, setReposts] = useState(0);
+  const [imageAspectRatio, setImageAspectRatio] = useState(1.5);
 
   useEffect(() => {
     const fetchUserAndStats = async () => {
@@ -30,6 +32,14 @@ export default function PostDetailScreen() {
     fetchUserAndStats();
   }, [postId, post]);
 
+  useEffect(() => {
+    if (post?.image_url) {
+      getImageSize(post.image_url).then(({ width, height }) => {
+        if (width && height) setImageAspectRatio(width / height);
+      });
+    }
+  }, [post?.image_url]);
+
   const handleInteraction = async (type) => {
     if (!userId) return;
     try {
@@ -38,7 +48,7 @@ export default function PostDetailScreen() {
       setLikes(stats.likes);
       setReposts(stats.reposts);
     } catch (e) {
-      // Manejo de error opcional
+      
     }
   };
 
@@ -59,99 +69,110 @@ export default function PostDetailScreen() {
   }
 
   return (
-    <View style={styles.container}>
-
-      <View style={styles.header}>
-        <BackButton fallback={() => router.back()} />
-        <View style={styles.userRow}>
-          <Text style={styles.username}>{post.users?.username || 'Anonymous'}</Text>
-          {post.users?.avatar_url ? (
-            <Image source={{ uri: post.users.avatar_url }} style={styles.avatar} />
-          ) : (
-            <View style={styles.avatar} />
-          )}
+    <ScrollView style={styles.scrollContainer} contentContainerStyle={{ flexGrow: 1 }}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <BackButton fallback={() => router.back()} />
+          <View style={styles.userRow}>
+            <Text style={styles.username}>{post.users?.username || 'Anonymous'}</Text>
+            {post.users?.avatar_url ? (
+              <Image source={{ uri: post.users.avatar_url }} style={styles.avatar} />
+            ) : (
+              <View style={styles.avatar} />
+            )}
+          </View>
         </View>
-      </View>
 
-      <Image source={{ uri: post.image_url }} style={styles.postImage} />
-
-      <View style={styles.infoContainer}>
-        <View style={styles.titleRow}>
-          <Text style={styles.title}>{post.title}</Text>
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: post.image_url }}
+            style={[
+              styles.postImage,
+              { aspectRatio: imageAspectRatio }
+            ]}
+          />
         </View>
-                <PostInteractions
-  likes={likes}
-  reposts={reposts}
-  postId={postId}
-  handleInteraction={handleInteraction}
-  style={styles.actionButtons}
-/>
-        <Text style={styles.description}>{post.description}</Text>
 
-        <View style={styles.detailsBox}>
-          <Text style={styles.detailItem}>Style: {post.styles?.name || 'N/A'}</Text>
-          <Text style={styles.detailItem}>Category: {post.categories?.name || 'N/A'}</Text>
-          <Text style={styles.detailItem}>Tags: {post.tags || 'N/A'}</Text>
+        <View style={styles.infoContainer}>
+          <View style={styles.titleRow}>
+            <Text style={styles.title}>{post.title}</Text>
+          </View>
+          <PostInteractions
+            likes={likes}
+            reposts={reposts}
+            postId={postId}
+            handleInteraction={handleInteraction}
+            style={styles.actionButtons}
+          />
+          <Text style={styles.description}>{post.description}</Text>
+
+          <View style={styles.detailsBox}>
+            <Text style={styles.detailItem}>Style: {post.styles?.name || 'N/A'}</Text>
+            <Text style={styles.detailItem}>Category: {post.categories?.name || 'N/A'}</Text>
+            <Text style={styles.detailItem}>Tags: {post.tags || 'N/A'}</Text>
+          </View>
         </View>
-      </View>
 
-      <ScrollView style={styles.commentSection}>
-        <Text style={styles.commentsTitle}>Comment Section</Text>
-        <FlatList
-          data={comments}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.comment}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 5 }}>
-                {item.users?.avatar_url ? (
-                  <Image source={{ uri: item.users.avatar_url }} style={styles.avatar} />
-                ) : (
-                  <View style={styles.avatar} />
-                )}
-                <Text style={[styles.commentAuthor, { marginLeft: 8 }]}>
-                  {item.users?.username || 'Anonymous'}
-                </Text>
+        <View style={styles.commentSection}>
+          <Text style={styles.commentsTitle}>Comment Section</Text>
+          <FlatList
+            data={comments}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View style={styles.comment}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 5 }}>
+                  {item.users?.avatar_url ? (
+                    <Image source={{ uri: item.users.avatar_url }} style={styles.avatar} />
+                  ) : (
+                    <View style={styles.avatar} />
+                  )}
+                  <Text style={[styles.commentAuthor, { marginLeft: 8 }]}>
+                    {item.users?.username || 'Anonymous'}
+                  </Text>
+                </View>
+                <Text style={styles.commentContent}>{item.content}</Text>
               </View>
-              <Text style={styles.commentContent}>{item.content}</Text>
-            </View>
-          )}
-        />
-      </ScrollView>
+            )}
+          />
+        </View>
 
-      <View style={styles.inputContainer}>
-        <TextInput
-          placeholder="Add a comment..."
-          style={styles.commentInput}
-          value={newComment}
-          onChangeText={setNewComment}
-        />
-        <TouchableOpacity
-          onPress={async () => {
-            if (newComment.trim().length === 0) return;
-            await handleAddComment(newComment);
-            setNewComment('');
-          }}
-        >
-          <Text style={styles.sendText}>send</Text>
-        </TouchableOpacity>
+        <View style={styles.inputContainer}>
+          <TextInput
+            placeholder="Escribe tu comentario..."
+            style={styles.commentInput}
+            value={newComment}
+            onChangeText={setNewComment}
+          />
+          <TouchableOpacity
+            onPress={async () => {
+              if (newComment.trim().length === 0) return;
+              await handleAddComment(newComment);
+              setNewComment('');
+            }}
+          >
+            <Text style={styles.sendText}>send</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     paddingTop: 40,
+    minHeight: Dimensions.get('window').height,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 15,
     justifyContent: 'space-between',
-  },
-  backText: {
-    color: '#333',
+    color: '#70c0b7',
   },
   userRow: {
     flexDirection: 'row',
@@ -160,18 +181,22 @@ const styles = StyleSheet.create({
   username: {
     fontWeight: 'bold',
     marginRight: 10,
+    color: '#70c0b7'
   },
   avatar: {
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#d3d3d3',
+  },
+  imageContainer: {
+    alignItems: 'center',
+    marginVertical: 10,
   },
   postImage: {
-    height: 200,
-    backgroundColor: '#d3d3d3',
-    margin: 15,
+    width: '40%',
+    height: undefined,
     borderRadius: 5,
+    resizeMode: 'contain',
   },
   infoContainer: {
     paddingHorizontal: 15,
@@ -184,6 +209,7 @@ const styles = StyleSheet.create({
   title: {
     fontWeight: 'bold',
     fontSize: 16,
+    color: '#70c0b7'
   },
   actionButtons: {
     flexDirection: 'row',
@@ -227,6 +253,7 @@ const styles = StyleSheet.create({
   commentsTitle: {
     fontWeight: 'bold',
     marginBottom: 5,
+    color: '#70c0b7'
   },
   comment: {
     marginBottom: 10,
@@ -262,7 +289,7 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
   },
   sendText: {
-    color: '#00b3b3',
+    color: '#70c0b7',
     marginLeft: 10,
     fontWeight: 'bold',
   },
