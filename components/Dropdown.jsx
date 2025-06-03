@@ -1,22 +1,39 @@
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, Modal, TouchableWithoutFeedback } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, Modal, TouchableWithoutFeedback, Dimensions } from "react-native";
 import React, { useCallback, useRef, useState } from "react";
 import { AntDesign } from "@expo/vector-icons";
 
 export default function Dropdown({ data, value, onChange, placeholder }) {
   const [expanded, setExpanded] = useState(false);
   const buttonRef = useRef(null);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0, direction: "down" });
 
   const openDropdown = useCallback(() => {
     buttonRef.current.measure((x, y, width, height, pageX, pageY) => {
+      const windowHeight = Dimensions.get('window').height;
+      const dropdownHeight = Math.min(data.length * 48, 250);
+      const spaceBelow = windowHeight - (pageY + height);
+      const spaceAbove = pageY;
+
+      let direction = "down";
+      let top = pageY + height;
+      let bottom = undefined;
+
+      if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+        direction = "up";
+        top = undefined;
+        bottom = windowHeight - pageY;
+      }
+
       setDropdownPosition({
-        top: pageY + height,
+        top,
         left: pageX,
         width: width,
+        bottom,
+        direction,
       });
       setExpanded(true);
     });
-  }, []);
+  }, [data.length]);
 
   const toggleExpanded = useCallback(() => {
     if (expanded) {
@@ -54,6 +71,7 @@ export default function Dropdown({ data, value, onChange, placeholder }) {
                 top: dropdownPosition.top,
                 left: dropdownPosition.left,
                 width: dropdownPosition.width,
+                bottom: dropdownPosition.bottom,
               }
             ]}>
               <FlatList
@@ -80,7 +98,18 @@ export default function Dropdown({ data, value, onChange, placeholder }) {
 
 const styles = StyleSheet.create({
   container: {
-    width: "100%",
+    width: 350,
+    alignSelf: 'center',
+    borderWidth: 2,
+    borderColor: '#ccc',
+    borderRadius: 16,
+    outlineColor: '#70c0b7',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   backdrop: {
     flex: 1,
@@ -92,8 +121,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: "#fff",
-    borderRadius: 10,
     paddingHorizontal: 15,
+    width: '100%',
   },
   text: {
     fontSize: 16,
@@ -107,7 +136,7 @@ const styles = StyleSheet.create({
     maxHeight: 250,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.25, // igual que el botón
     shadowRadius: 4,
     elevation: 5,
     overflow: "hidden",

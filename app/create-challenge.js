@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Image, View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { Image, View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Pressable } from 'react-native';
 import BackButton from '../components/BackButton';
 import UploadFile from '../components/UploadFile';
 import { useCreateChallenge } from '../hooks/useChallenges';
+import CustomTextInput from '../components/CustomTextInput';
 
 export default function CreateChallengePage() {
   const {
@@ -24,28 +25,32 @@ export default function CreateChallengePage() {
         setUploading={setUploading}
       />
 
-      <TextInput
+      <CustomTextInput
         placeholder="Title"
-        style={styles.input}
         value={title}
         onChangeText={setTitle}
       />
-      <TextInput
+      <CustomTextInput
         placeholder="Description"
-        style={[styles.input, styles.textArea]}
         multiline
         numberOfLines={4}
         value={description}
         onChangeText={setDescription}
       />
 
-      <TouchableOpacity style={styles.postButton} onPress={handleCreateChallenge} disabled={posting}>
-        {posting ? (
-          <ActivityIndicator size="small" color="#fff" />
-        ) : (
-          <Text style={styles.postButtonText}>Create Challenge</Text>
-        )}
-      </TouchableOpacity>
+      <Pressable
+        onPress={handleCreateChallenge}
+        disabled={posting}
+        style={({ pressed }) => [
+          styles.postButton,
+          posting && styles.postButtonDisabled,
+          { backgroundColor: pressed ? '#5ea8a0' : '#70c0b7' }
+        ]}
+      >
+        <Text style={styles.postButtonText}>
+          {posting ? "Creando..." : "Create Challenge"}
+        </Text>
+      </Pressable>
     </ScrollView>
   );
 }
@@ -54,15 +59,6 @@ const styles = StyleSheet.create({
   container: { 
     padding: 16, 
     paddingBottom: 100 
-  },
-  input: { 
-    backgroundColor: '#f2f2f2', 
-    padding: 12, 
-    borderRadius: 10, 
-    marginBottom: 12 
-  },
-  textArea: { 
-    height: 100 
   },
   row: {
     flexDirection: 'row',
@@ -95,16 +91,25 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   postButton: { 
-    backgroundColor: '#70c0b7', 
-    padding: 15, 
-    borderRadius: 30, 
-    alignItems: 'center', 
-    elevation: 3, 
+    height: 45,
+    width: 160,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
     marginTop: 20 
   },
   postButtonText: { 
     fontWeight: 'bold',
     color: 'white',
+  },
+  postButtonDisabled: {
+    opacity: 0.6,
   },
   uploadedImageContainer: {
     alignItems: 'center',

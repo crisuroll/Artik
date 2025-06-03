@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Alert, Image } from 'react-native';
 import { supabase } from '../supabase/supabaseClient';
-import { fetchPostById, fetchCommentsByPostId, addCommentToPost, loadTimeline, interactWithPost, fetchPostStats, handleInteraction, loadTimelineWithImageSizes, getPostInteractions } from '../services/postsService';
+import { fetchPostById, fetchCommentsByPostId, addCommentToPost, loadTimeline, interactWithPost, fetchPostStats, handleInteraction, loadTimelineWithImageSizes, getPostInteractions, getPostsByUserId } from '../services/postsService';
 import { getImageSize } from '../services/getImages';
 import { loadUser } from '../services/usersService';
 import { fetchCategories, fetchStyles, fetchPostsByFilter } from '../services/postsService';
+import { searchUsers } from '../services/usersService';
 
 export function useHomePosts() {
   const [username, setUsername] = useState('');
@@ -206,71 +207,64 @@ export function usePostInteractions(postId, userId, refresh) {
 
 const useSearchPosts = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [posts, setPosts] = useState([]);
   const [filteredPosts, setFilteredPosts] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [activeMenuPostId, setActiveMenuPostId] = useState(null);
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      const fetchedPosts = await loadTimeline();
-      const processedPosts = await Promise.all(
-        fetchedPosts.map(async (post) => {
-          if (post.imageUrl) {
-            try {
-              const { width, height } = await getImageSize(post.imageUrl);
-              return { ...post, width, height };
-            } catch (error) {
-              return post;
-            }
-          }
-          return post;
-        })
-      );
-      setPosts(processedPosts);
-    };
-
-    fetchPosts();
-  }, []);
-
-  const handleSearch = () => {
     if (searchTerm.trim() === '') {
       setFilteredPosts([]);
-    } else {
-      const results = posts.filter((post) =>
-        post.title.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredPosts(results);
+      setFilteredUsers([]);
+      return;
     }
-  };
 
-  const handleInteraction = async (type, postId) => {
-    try {
-      const result = await interactWithPost(type, null, postId);
-      setFilteredPosts((prevPosts) =>
-        prevPosts.map((post) => {
-          if (post.id === postId) {
-            const currentValue = post[type] || 0;
-            return {
-              ...post,
-              [type]: result.toggled === 'added' ? currentValue + 1 : Math.max(currentValue - 1, 0),
-            };
-          }
-          return post;
-        })
+    const doSearch = async () => {
+      const users = (await searchUsers(searchTerm.trim()))
+        .filter(user =>
+          user.username === searchTerm.trim() ||
+          user.nickname === searchTerm.trim()
+        );
+      setFilteredUsers(users);
+
+      const allPosts = await loadTimeline();
+      const keywordPosts = allPosts.filter(
+        post => post.title === searchTerm
+      ).map(post => ({
+        ...post,
+        imageUrl: post.image_url,
+      }));
+
+      let userPosts = [];
+      for (const user of users) {
+        const posts = await getPostsByUserId(user.id);
+        userPosts = userPosts.concat(posts.map(post => ({
+          ...post,
+          imageUrl: post.image_url,
+        })));
+      }
+
+      // Combinar y eliminar duplicados por id
+      const combinedPosts = [...keywordPosts, ...userPosts].filter(
+        (post, index, self) =>
+          index === self.findIndex((p) => p.id === post.id)
       );
-    } catch (error) {
-      console.error('Error interacting with post:', error);
-    }
-  };
+
+      setFilteredPosts(combinedPosts);
+    };
+
+    doSearch();
+  }, [searchTerm]);
+
+  const handleSearch = () => {};
 
   return {
     searchTerm,
     setSearchTerm,
     filteredPosts,
+    filteredUsers,
     activeMenuPostId,
     setActiveMenuPostId,
     handleSearch,
-    handleInteraction,
   };
 };
 

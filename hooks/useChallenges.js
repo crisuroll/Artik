@@ -60,12 +60,28 @@ export function useLoadChallenges() {
   useEffect(() => {
     const loadChallenges = async () => {
       try {
-        const { data, error } = await supabase.from('challenges').select('*').order('created_at', { ascending: false });
+        const { data, error } = await supabase
+          .from('challenges')
+          .select('*')
+          .order('created_at', { ascending: false });
 
         if (error) {
           console.error('Error loading challenges:', error);
         } else {
-          setChallenges(data);
+          const processed = await Promise.all(
+            (data || []).map(async (challenge) => {
+              if (challenge.image_url) {
+                try {
+                  const { width, height } = await getImageSize(challenge.image_url);
+                  return { ...challenge, width, height };
+                } catch {
+                  return { ...challenge };
+                }
+              }
+              return challenge;
+            })
+          );
+          setChallenges(processed);
         }
       } catch (err) {
         console.error('Unexpected error:', err);

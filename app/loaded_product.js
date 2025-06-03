@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, ActivityIndicator, ScrollView, Button } from 'react-native';
+import { View, Text, Image, StyleSheet, ActivityIndicator, ScrollView, Pressable } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { addToCart } from '../services/cart';
 import { supabase } from '../supabase/supabaseClient';
+import BackButton from '../components/BackButton';
 
 export default function LoadedProduct() {
   const { productId } = useLocalSearchParams();
@@ -52,6 +53,7 @@ export default function LoadedProduct() {
   if (!product) {
     return (
       <View style={styles.centered}>
+        <BackButton fallback={() => router.back()} />
         <Text>Producto no encontrado</Text>
       </View>
     );
@@ -59,14 +61,27 @@ export default function LoadedProduct() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <BackButton fallback={() => router.back()} />
       {product.product_url ? (
         <Image source={{ uri: product.product_url }} style={styles.image} />
       ) : null}
       <Text style={styles.title}>{product.name}</Text>
-      <Text style={styles.price}>${product.price}</Text>
+      <Text style={styles.price}>{product.price}€</Text>
       <Text style={styles.stock}>Stock: {product.stock}</Text>
       <Text style={styles.desc}>{product.description}</Text>
-      <Button title={adding ? "Añadiendo..." : "Añadir al carrito"} onPress={handleAddToCart} disabled={adding} />
+      <Pressable 
+        onPress={handleAddToCart}
+        disabled={adding}
+        style={({ pressed }) => [
+          styles.buyButton,
+          adding && { backgroundColor: '#ccc' },
+          { backgroundColor: pressed ? '#5ea8a0' : '#70c0b7' }
+        ]}
+        >
+          <Text style={styles.postButtonText}>
+            {adding ? "Añadiendo..." : "Añadir al carrito"}
+          </Text>
+        </Pressable>
     </ScrollView>
   );
 }
@@ -75,7 +90,6 @@ const styles = StyleSheet.create({
   container: {
     padding: 24,
     alignItems: 'center',
-    backgroundColor: '#fff',
   },
   centered: {
     flex: 1,
@@ -110,5 +124,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#444',
     textAlign: 'center',
+  },
+  buyButton: { 
+    height: 45,
+    width: 160,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  postButtonText: { 
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  postButtonDisabled: {
+    opacity: 0.6,
   },
 });

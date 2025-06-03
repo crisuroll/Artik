@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import UploadFile from '../components/UploadFile';
 import BackButton from '../components/BackButton';
 import { useEditCommission } from '../hooks/useShop';
+import CustomTextInput from '../components/CustomTextInput';
 
 function OptionListInput({ label, options, setOptions, placeholder }) {
   const [inputs, setInputs] = useState(['']);
@@ -39,21 +40,35 @@ function OptionListInput({ label, options, setOptions, placeholder }) {
   return (
     <View style={{ marginBottom: 16 }}>
       <Text style={styles.label}>{label}</Text>
-      {/* Inputs para escribir nuevas opciones */}
       {inputs.map((input, idx) => (
         <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-          <TextInput
+          <CustomTextInput
             style={[styles.input, { flex: 1, marginBottom: 0 }]}
             value={input}
             onChangeText={text => handleInputChange(text, idx)}
             placeholder={placeholder}
+            placeholderTextColor="#bbb"
           />
-          <TouchableOpacity onPress={() => handleConfirm(idx)} style={{ marginLeft: 8, backgroundColor: '#1abc9c', borderRadius: 8, padding: 8 }}>
+          <TouchableOpacity
+            onPress={() => handleConfirm(idx)}
+            style={{
+              marginLeft: 8,
+              backgroundColor: '#70c0b7',
+              borderRadius: 20,
+              padding: 8,
+              justifyContent: 'center',
+              alignItems: 'center',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.25,
+              shadowRadius: 4,
+              elevation: 5,
+            }}
+          >
             <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>✓</Text>
           </TouchableOpacity>
         </View>
       ))}
-      {/* Opciones definitivas */}
       <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
         {safeOptions.map((opt, idx) => (
           <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#eee', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, margin: 2 }}>
@@ -90,17 +105,9 @@ export default function EditCommissionScreen() {
 
   const onSave = useCallback(async () => {
     setUploading(true);
-    await handleSave({
-      title,
-      description,
-      imageUrl,
-      type_options: typeOptions,
-      num_characters_options: numCharactersOptions,
-      size_options: sizeOptions,
-    });
+    await handleSave(router);
     setUploading(false);
-    router.back();
-  }, [title, description, imageUrl, typeOptions, numCharactersOptions, sizeOptions, handleSave, router]);
+  }, [handleSave, router]);
 
   if (loading) {
     return (
@@ -119,26 +126,32 @@ export default function EditCommissionScreen() {
         onUploadSuccess={setImageUrl}
         setUploading={setUploading}
         bucketName="commissions"
-        style={styles.imagePicker}
         editable
+        style={styles.imagePicker}
       />
 
-      <Text style={styles.label}>Título</Text>
-      <TextInput
-        style={styles.input}
-        value={title}
-        onChangeText={setTitle}
-        placeholder="Título de la commission"
-      />
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Título</Text>
+        <CustomTextInput
+          style={styles.input}
+          value={title}
+          onChangeText={setTitle}
+          placeholder="Título de la commission"
+          placeholderTextColor="#bbb"
+        />
+      </View>
 
-      <Text style={styles.label}>Descripción</Text>
-      <TextInput
-        style={[styles.input, { height: 80 }]}
-        value={description}
-        onChangeText={setDescription}
-        placeholder="Describe tu commission"
-        multiline
-      />
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Descripción</Text>
+        <CustomTextInput
+          style={[styles.input, styles.textArea]}
+          value={description}
+          onChangeText={setDescription}
+          placeholder="Describe tu commission"
+          placeholderTextColor="#bbb"
+          multiline
+        />
+      </View>
 
       <OptionListInput
         label="Opciones de tipo"
@@ -159,15 +172,20 @@ export default function EditCommissionScreen() {
         placeholder="Añadir tamaño..."
       />
 
-      <TouchableOpacity
-        style={styles.saveButton}
+      <Pressable
         onPress={onSave}
         disabled={uploading}
+        style={({ pressed }) => [
+          styles.postButton,
+          uploading && styles.postButtonDisabled,
+          { backgroundColor: pressed ? '#5ea8a0' : '#70c0b7' }
+        ]}
       >
-        <Text style={styles.saveButtonText}>
+        <Text style={styles.postButtonText}>
           {uploading ? 'Guardando...' : 'Guardar'}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
+
     </ScrollView>
   );
 }
@@ -175,44 +193,57 @@ export default function EditCommissionScreen() {
 const styles = StyleSheet.create({
   container: {
     padding: 24,
-    flex: 1,
-    backgroundColor: '#fff',
+    flexGrow: 1,
+    paddingBottom: 30
+  },
+  inputGroup: {
+    marginBottom: 18,
+  },
+  input: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 16,
+  },
+  textArea: {
+    height: 80,
+    textAlignVertical: 'top',
+    paddingTop: 12,
   },
   label: {
     fontWeight: 'bold',
     marginTop: 16,
     marginBottom: 6,
     fontSize: 16,
-  },
-  input: {
-    backgroundColor: '#f2f2f2',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 16,
-    marginBottom: 8,
+    color: '#70c0b7',
   },
   imagePicker: {
-    width: 180,
-    height: 180,
-    backgroundColor: '#eee',
-    borderRadius: 12,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
-    marginBottom: 10,
     overflow: 'hidden',
   },
-  saveButton: {
-    backgroundColor: '#007b7f',
-    borderRadius: 20,
-    paddingVertical: 12,
+  postButton: { 
+    height: 45,
+    width: 160,
+    borderRadius: 24,
+    justifyContent: 'center',
     alignItems: 'center',
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
     marginTop: 24,
   },
-  saveButtonText: {
-    color: '#fff',
+  postButtonText: { 
     fontWeight: 'bold',
+    color: 'white',
     fontSize: 18,
+  },
+  postButtonDisabled: {
+    opacity: 0.6,
   },
   centered: {
     flex: 1,

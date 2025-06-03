@@ -5,6 +5,7 @@ import NavBarMobile from '../components/Navbar-Mobile';
 import HeaderProfile from "../components/HeaderProfile";
 import BarMenu from "../components/BarMenu";
 import DesktopSidebar from '../components/DesktopSidebar';
+import ChatsSidebar from '../components/ChatsSidebar';
 import { useAuthLayout } from "../hooks/useSession";
 
 export default function Layout() {
@@ -16,9 +17,10 @@ export default function Layout() {
   const { loading, avatarUrl } = useAuthLayout();
 
   const pathname = usePathname();
-  const isAuthScreen = pathname === "/login" || pathname === "/register" || pathname === "/confirm_email";
+  const isAuthScreen = pathname === "/login" || pathname === "/register" || pathname === "/confirm_email"
+  const isCreateScreen = pathname === "/create-post" || pathname === "/create-challenge" || pathname === "/create-product";
   const isRequestCommission = pathname === "/request-commission";
-  const isEditScreen = pathname.startsWith("/edit_commission") || pathname.startsWith("/edit_profile");
+  const isEditScreen = pathname.startsWith("/edit_commission") || pathname.startsWith("/edit_profile")
   const main = pathname === "/home" || pathname === "/search" || pathname === "/challenges" || pathname === "/gallery" || pathname === "/loaded_challenge" || pathname === "/dm";
   const isDmChat = pathname.startsWith("/dm/");
 
@@ -52,15 +54,29 @@ export default function Layout() {
         )}
         {isMenuVisible && <BarMenu onClose={toggleMenu} />}
       </View>
+
+      {!isAuthScreen && isDesktop && (
+        <View style={styles.desktopDmSidebar}>
+          <ChatsSidebar />
+        </View>
+      )}
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   desktopSidebar: {
-    width: 250,
+    width: 360,
     borderRightWidth: 1,
     borderRightColor: '#e0e0e0',
+    paddingTop: 30,
+    marginLeft: 40,
+  },
+  desktopDmSidebar: {
+    width: 600,
+    borderLeftWidth: 1,
+    borderLeftColor: '#e0e0e0',
     paddingTop: 30,
   },
 });

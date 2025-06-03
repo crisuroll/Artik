@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Dimensions, Pressable, Alert } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useRegister } from '../../hooks/useAuth';
+import CustomTextInput from '../../components/CustomTextInput';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 
 export default function Register() {
-
   const router = useRouter();
   const { register, loading } = useRegister();
   const [email, setEmail] = useState('');
@@ -22,29 +22,23 @@ export default function Register() {
     <View style={styles.container}>
       <Text style={styles.title}>Registro</Text>
 
-      <TextInput
-        style={styles.input}
+      <CustomTextInput
         placeholder="Correo electrónico"
-        placeholderTextColor="#666"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
         autoCapitalize="none"
       />
 
-      <TextInput
-        style={styles.input}
+      <CustomTextInput
         placeholder="Contraseña"
-        placeholderTextColor="#666"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
       />
 
-      <TextInput
-        style={styles.input}
+      <CustomTextInput
         placeholder="Confirmar contraseña"
-        placeholderTextColor="#666"
         value={confirmPassword}
         onChangeText={setConfirmPassword}
         secureTextEntry
@@ -80,19 +74,6 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     color: '#70c0b7'
   },
-  input: {
-    height: 50,
-    width: 350,
-    alignSelf: 'center',
-    borderWidth: 2,
-    borderColor: '#ccc',
-    borderRadius: 16,
-    paddingHorizontal: 15,
-    marginBottom: 15,
-    backgroundColor: '#fff',
-    color: '#333',
-    outlineColor: '#70c0b7',
-  },
   buttonsContainer: {
     flexDirection: 'row', 
     justifyContent: 'space-between', 
@@ -125,9 +106,6 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
   link: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 17,
-    letterSpacing: 0.5,
+    color: '#5ea8a0'
   }
 });

@@ -32,7 +32,7 @@ export default function ChallengesPage() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Challenges</Text>
+      <Text style={styles.header}>Retos</Text>
       <FlatList
         data={challengesWithPlaceholder}
         keyExtractor={(item) => item.id.toString()}
@@ -47,7 +47,15 @@ export default function ChallengesPage() {
               onPress={() => router.push(`/loaded_challenge?id=${item.id}`)}
             >
               {item.image_url && (
-                <Image source={{ uri: item.image_url }} style={styles.challengeImage} />
+                <Image
+                  source={{ uri: item.image_url }}
+                  style={[
+                    styles.challengeImage,
+                    item.width && item.height
+                      ? { aspectRatio: item.width / item.height }
+                      : { aspectRatio: 1.5 }
+                  ]}
+                />
               )}
               <Text style={styles.challengeTitle}>{item.title}</Text>
             </TouchableOpacity>
@@ -61,7 +69,7 @@ export default function ChallengesPage() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 20,
+    paddingTop: 60,
     paddingHorizontal: 20,
     flex: 1,
   },
@@ -74,6 +82,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 10,
+    color: '#70c0b7',
   },
   emptyContainer: {
     flex: 1,
@@ -91,24 +100,37 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     borderRadius: 10,
-    padding: 10,
+    padding: 0,
     margin: 8,
-    elevation: 3,
+    elevation: 2,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    overflow: 'hidden',
   },
   placeholderCard: {
     backgroundColor: 'transparent',
     elevation: 0,
+    shadowColor: 'transparent',
+    borderWidth: 0,
+    flex: 1,
   },
   challengeImage: {
     width: '100%',
-    height: 120,
-    borderRadius: 10,
-    marginBottom: 8,
+    height: undefined,
+    aspectRatio: 1.5,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    resizeMode: 'cover',
   },
   challengeTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
+    marginVertical: 10,
+    marginHorizontal: 8,
+    color: '#333',
   },
 });

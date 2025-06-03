@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { usePayment } from '../hooks/useShop';
+import BackButton from '../components/BackButton';
 
 export default function CartScreen() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function CartScreen() {
 
   return (
     <View style={styles.container}>
+      <BackButton fallback="/username" />
       <Text style={styles.title}>Tu carrito</Text>
       <FlatList
         data={cart}
@@ -34,7 +36,7 @@ export default function CartScreen() {
             />
             <View style={styles.info}>
               <Text style={styles.productName}>{item.product?.name}</Text>
-              <Text style={styles.price}>€{item.product?.price?.toFixed(2)}</Text>
+              <Text style={styles.price}>{item.product?.price?.toFixed(2)}€</Text>
               <Text style={styles.quantity}>Cantidad: {item.quantity}</Text>
               <TouchableOpacity
                 style={styles.removeBtn}
@@ -51,7 +53,7 @@ export default function CartScreen() {
 
       {cart.length > 0 && (
         <View style={styles.footer}>
-          <Text style={styles.total}>Total: €{total.toFixed(2)}</Text>
+          <Text style={styles.total}>Total: {total.toFixed(2)}€</Text>
           <TouchableOpacity
             style={styles.payBtn}
             onPress={() => router.push('/payment')}
@@ -67,7 +69,6 @@ export default function CartScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fafafd',
     paddingHorizontal: 0,
     paddingTop: 20,
   },
@@ -115,7 +116,7 @@ const styles = StyleSheet.create({
   },
   price: {
     fontSize: 16,
-    color: '#007b7f',
+    color: '#70c0b7',
     fontWeight: 'bold',
     marginBottom: 2,
   },
@@ -161,7 +162,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   payBtn: {
-    backgroundColor: '#007b7f',
+    backgroundColor: '#70c0b7',
     borderRadius: 30,
     paddingVertical: 14,
     paddingHorizontal: 60,

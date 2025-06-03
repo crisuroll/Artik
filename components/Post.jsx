@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
 import PostInteractions from './PostInteractions';
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
 
 const Post = ({ item, activeMenuPostId, setActiveMenuPostId, handleInteraction, handleOption }) => {
   const router = useRouter();
@@ -29,7 +31,7 @@ const Post = ({ item, activeMenuPostId, setActiveMenuPostId, handleInteraction, 
             style={[styles.postImage, { aspectRatio: imageRatio }]}
           />
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             id="menu-button"
             style={styles.menuButton}
             onPress={() =>
@@ -48,7 +50,7 @@ const Post = ({ item, activeMenuPostId, setActiveMenuPostId, handleInteraction, 
                 <Text style={styles.menuItem}>Guardar</Text>
               </TouchableOpacity>
             </View>
-          )}
+          )} */}
         </View>
 
         <Text style={styles.postTitle}>{item.title}</Text>
@@ -72,19 +74,21 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: '#f8f9fa',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 2 }, 
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+    width: windowWidth < 426 ? '100%' : windowWidth < 769 ? '80%' : '60%',
+    alignSelf: 'center',
   },
   usernameContainer: {
-    marginHorizontal: 15,
+    marginHorizontal: windowWidth < 426 ? 5 : windowWidth < 769 ? 80 : 160,
     marginTop: 10,
   },
   username: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#1a365d',
+    color: '#70c0b7',
   },
   imageWrapper: {
     position: 'relative',

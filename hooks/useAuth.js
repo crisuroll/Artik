@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Alert } from 'react-native';
+import { Image, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
 import {
-  fetchUserProfile,
-  updateUserProfile,
   loadUser,
   loadUserPosts,
   loadUserReposts,
@@ -10,8 +9,117 @@ import {
   loadUserCommission,
 } from '../services/usersService';
 import { supabase } from '../supabase/supabaseClient';
-import { useRouter } from 'expo-router';
 
+async function getImageSize(uri) {
+  return new Promise((resolve) => {
+    if (!uri) return resolve({ width: 200, height: 300 });
+    Image.getSize(
+      uri,
+      (width, height) => resolve({ width, height }),
+      () => resolve({ width: 200, height: 300 })
+    );
+  });
+}
+
+export function useUserProfile({ userId: propUserId, username }) {
+  const [activeTab, setActiveTab] = useState('Posts');
+  const [userData, setUserData] = useState(null);
+  const [userPosts, setUserPosts] = useState([]);
+  const [userReposts, setUserReposts] = useState([]);
+  const [userProducts, setUserProducts] = useState([]);
+  const [description, setDescription] = useState('');
+  const [userId, setUserId] = useState(propUserId || null);
+  const [commission, setCommission] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      setLoading(true);
+      try {
+        let user = null;
+        let resolvedUserId = propUserId;
+
+        if (propUserId) {
+          user = await loadUser();
+          resolvedUserId = propUserId;
+        } else if (username) {
+          const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('username', username)
+            .single();
+          user = data;
+          resolvedUserId = data?.id;
+        }
+
+        if (user && resolvedUserId) {
+          setUserData(user);
+          setUserId(resolvedUserId);
+          setDescription(user.bio || '');
+
+          let posts = await loadUserPosts(resolvedUserId);
+          posts = await Promise.all(
+            posts.map(async (post) => {
+              if (post.width && post.height) return post;
+              if (post.imageUrl) {
+                const { width, height } = await getImageSize(post.imageUrl);
+                return { ...post, width, height };
+              }
+              return post;
+            })
+          );
+          setUserPosts(posts);
+
+          let reposts = await loadUserReposts(resolvedUserId);
+          reposts = await Promise.all(
+            reposts.map(async (post) => {
+              if (post.width && post.height) return post;
+              if (post.imageUrl) {
+                const { width, height } = await getImageSize(post.imageUrl);
+                return { ...post, width, height };
+              }
+              return post;
+            })
+          );
+          setUserReposts(reposts);
+
+          const products = await loadUserProducts(resolvedUserId);
+          setUserProducts(products);
+
+          const commissionData = await loadUserCommission(resolvedUserId);
+          setCommission(commissionData);
+        }
+      } catch (error) {
+        // Manejo de error opcional
+      }
+      setLoading(false);
+    };
+    fetchUserData();
+  }, [propUserId, username]);
+
+  const refreshProducts = useCallback(async () => {
+    if (!userId) return;
+    const products = await loadUserProducts(userId);
+    setUserProducts(products);
+  }, [userId]);
+
+  return {
+    activeTab,
+    setActiveTab,
+    userData,
+    userPosts,
+    userReposts,
+    userProducts,
+    description,
+    setDescription,
+    userId,
+    commission,
+    loading,
+    refreshProducts,
+  };
+}
+
+// --- Hook de login ---
 export const useLogin = () => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -88,6 +196,7 @@ export const useLogin = () => {
   return { login, loading };
 };
 
+// --- Hook de registro ---
 export const useRegister = () => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -124,186 +233,3 @@ export const useRegister = () => {
 
   return { register, loading };
 };
-
-export function useEditProfile() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [userId, setUserId] = useState(null);
-  const [nickname, setNickname] = useState('');
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('');
-  const [bio, setBio] = useState('');
-  const [uploading, setUploading] = useState(false);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      setLoading(true);
-      const { data: authData, error: authError } = await supabase.auth.getUser();
-      if (authError || !authData?.user) {
-        setLoading(false);
-        return;
-      }
-      const id = authData.user.id;
-      setUserId(id);
-      try {
-        const userData = await fetchUserProfile(id);
-        setNickname(userData.nickname || '');
-        setUsername(userData.username);
-        setEmail(userData.email);
-        setAvatarUrl(userData.avatar_url || '');
-        setBio(userData.bio || '');
-      } catch (e) {
-        // Manejo de error opcional
-      }
-      setLoading(false);
-    };
-    fetchUser();
-  }, []);
-
-  const handleSave = useCallback(async () => {
-    if (!username || !email) return;
-    setSaving(true);
-    try {
-      await updateUserProfile({
-        userId,
-        nickname,
-        username,
-        email,
-        avatarUrl,
-        bio,
-      });
-      router.replace(`/${username}`);
-    } catch (e) {
-      // Manejo de error opcional
-    }
-    setSaving(false);
-  }, [userId, nickname, username, email, avatarUrl, bio, router]);
-
-  return {
-    loading,
-    saving,
-    userId,
-    nickname, setNickname,
-    username, setUsername,
-    email, setEmail,
-    avatarUrl, setAvatarUrl,
-    bio, setBio,
-    uploading, setUploading,
-    handleSave,
-  };
-}
-
-export function useMyUser(profileUserId) {
-  const [activeTab, setActiveTab] = useState('Posts');
-  const [userData, setUserData] = useState(null);
-  const [userPosts, setUserPosts] = useState([]);
-  const [userReposts, setUserReposts] = useState([]);
-  const [userProducts, setUserProducts] = useState([]);
-  const [description, setDescription] = useState('');
-  const [userId, setUserId] = useState(null);
-  const [commission, setCommission] = useState(null);
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const user = await loadUser();
-        if (user) {
-          setUserData(user);
-          setUserId(user.userId);
-          setDescription(user.bio || '');
-
-          const posts = await loadUserPosts(user.userId);
-          setUserPosts(posts);
-
-          const reposts = await loadUserReposts(user.userId);
-          setUserReposts(reposts);
-
-          const products = await loadUserProducts(user.userId);
-          setUserProducts(products);
-
-          const commissionData = await loadUserCommission(user.userId);
-          setCommission(commissionData);
-        }
-      } catch (error) {
-        // Manejo de error opcional
-      }
-    };
-    fetchUserData();
-  }, []);
-
-  const refreshProducts = useCallback(async () => {
-    if (!userId) return;
-    const products = await loadUserProducts(userId);
-    setUserProducts(products);
-  }, [userId]);
-
-  return {
-    activeTab, setActiveTab,
-    userData,
-    userPosts,
-    userReposts,
-    userProducts,
-    description, setDescription,
-    userId,
-    commission,
-    refreshProducts,
-  };
-}
-
-export function usePublicUser(username) {
-  const [userData, setUserData] = useState(null);
-  const [userPosts, setUserPosts] = useState([]);
-  const [userProducts, setUserProducts] = useState([]);
-  const [userReposts, setUserReposts] = useState([]);
-  const [description, setDescription] = useState('');
-  const [commission, setCommission] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!username) return;
-    const fetchUserData = async () => {
-      setLoading(true);
-      try {
-        const { data: user, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('username', username)
-          .single();
-
-        if (user) {
-          setUserData(user);
-          setDescription(user.bio || '');
-
-          const posts = await loadUserPosts(user.id);
-          setUserPosts(posts);
-
-          const products = await loadUserProducts(user.id);
-          setUserProducts(products);
-
-          const reposts = await loadUserReposts(user.id);
-          setUserReposts(reposts);
-
-          const commissionData = await loadUserCommission(user.id);
-          setCommission(commissionData);
-        }
-      } catch (error) {
-        // Manejo de error opcional
-      }
-      setLoading(false);
-    };
-
-    fetchUserData();
-  }, [username]);
-
-  return {
-    userData,
-    userPosts,
-    userProducts,
-    userReposts,
-    description,
-    commission,
-    loading,
-  };
-}

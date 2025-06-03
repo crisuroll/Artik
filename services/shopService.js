@@ -10,7 +10,6 @@ export async function fetchCommissionTab(artistId) {
     .select("*")
     .eq("user_id", artistId)
     .maybeSingle();
-  console.log("fetchCommissionTab result", data, error);
   return data;
 }
 
@@ -72,14 +71,17 @@ export async function saveUserCommission({
 }) {
   const { error } = await supabase
     .from('commissions_tab')
-    .upsert([{
-      user_id: userId,
-      title,
-      description,
-      comm_url: imageUrl,
-      type_options,
-      num_characters_options,
-      size_options,
-    }]);
+    .upsert(
+      [{
+        user_id: userId,
+        title,
+        description,
+        comm_url: imageUrl,
+        type_options,
+        num_characters_options,
+        size_options,
+      }],
+      { onConflict: ['user_id'] }
+    );
   if (error) throw error;
 }

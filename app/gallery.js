@@ -2,8 +2,10 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import MasonryList from 'react-native-masonry-list';
 import { useGallery } from '../hooks/usePosts';
+import { useRouter } from 'expo-router';
 
 export default function Gallery() {
+  const router = useRouter();
   const {
     activeTab,
     setActiveTab,
@@ -16,9 +18,13 @@ export default function Gallery() {
     getFilters,
   } = useGallery();
 
+  const handlePressImage = (item) => {
+    router.push(`/loaded_post?postId=${item.id}`);
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Gallery</Text>
+      <Text style={styles.header}>Galería</Text>
 
       <View style={styles.topFilters}>
         {['Category', 'Style'].map((tab) => (
@@ -66,21 +72,26 @@ export default function Gallery() {
       {loading ? (
         <Text style={styles.noPostsText}>Cargando...</Text>
       ) : posts.length === 0 ? (
-        <Text style={styles.noPostsText}>No posts available for the selected filter.</Text>
+        <Text style={styles.noPostsText}>No hay posts disponibles</Text>
       ) : (
-        <MasonryList
-          images={posts
-            .filter((post) => post.image_url)
-            .map((post) => ({
-              uri: post.image_url || 'https://via.placeholder.com/200x300',
-              id: post.id,
-              width: post.width || 200,
-              height: post.height || 300,
-            }))}
-          columns={2}
-          spacing={4}
-          style={styles.masonryList}
-        />
+        <View style={styles.masonryWrapper}>
+          <MasonryList
+            images={posts
+              .filter((post) => post.image_url)
+              .map((post) => ({
+                uri: post.image_url || 'https://via.placeholder.com/200x300',
+                id: post.id,
+                width: post.width || 200,
+                height: post.height || 300,
+              }))}
+            columns={2}
+            spacing={4}
+            style={styles.masonryList}
+            imageContainerStyle={styles.imageContainer}
+            onPressImage={handlePressImage}
+            backgroundColor="transparent"
+          />
+        </View>
       )}
     </View>
   );
@@ -88,14 +99,15 @@ export default function Gallery() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 20,
+    paddingTop: 60,
     paddingHorizontal: 20,
     flex: 1,
   },
   header: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 10,
+    color: '#70c0b1',
   },
   topFilters: {
     flexDirection: 'row',
@@ -104,12 +116,12 @@ const styles = StyleSheet.create({
   },
   tab: {
     fontWeight: '600',
-    color: '#999',
+    color: '#70c0b7',
     padding: 6,
   },
   activeTab: {
     fontWeight: 'bold',
-    color: '#000',
+    color: '#5ea8a0',
     backgroundColor: '#eee',
     borderRadius: 6,
   },
@@ -126,17 +138,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   activeSubFilter: {
-    color: '#000',
+    color: '#5ea8a0',
     fontWeight: 'bold',
     textDecorationLine: 'underline',
   },
   masonryList: {
     marginTop: 5,
+    backgroundColor: 'transparent',
+  },
+  masonryWrapper: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  imageContainer: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: 'transparent',
   },
   noPostsText: {
     textAlign: 'center',
     marginTop: 20,
-    fontSize: 16,
+    fontSize: 14,
     color: '#999',
   },
 });

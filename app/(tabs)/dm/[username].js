@@ -5,6 +5,7 @@ import { supabase } from '../../../supabase/supabaseClient';
 import { loadUser } from '../../../services/usersService';
 import { Ionicons } from '@expo/vector-icons';
 import BackButton from '../../../components/BackButton';
+import CustomTextInput from '../../../components/CustomTextInput';
 
 export default function ChatWithUser() {
   const { username, commission } = useLocalSearchParams();
@@ -157,19 +158,12 @@ export default function ChatWithUser() {
     }
   };
 
-  console.log("isCommissionChat:", isCommissionChat);
-  console.log("lastCommission:", lastCommission);
-  console.log("currentUserId:", currentUserId);
-  console.log("isVendedor:", isVendedor);
-  console.log("isComprador:", isComprador);
-
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: '#f6f6f6' }}
+      style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={90}
     >
-      {/* Header */}
       <View style={styles.header}>
         <BackButton />
         {otherUserInfo && (
@@ -189,7 +183,6 @@ export default function ChatWithUser() {
         )}
       </View>
 
-      {/* Información de la última comisión (si existe) */}
       {isCommissionChat && lastCommission && (
         <View style={{
           margin: 16,
@@ -214,7 +207,6 @@ export default function ChatWithUser() {
         </View>
       )}
 
-      {/* Chat */}
       <FlatList
         ref={flatListRef}
         data={messages}
@@ -224,13 +216,12 @@ export default function ChatWithUser() {
         onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
       />
 
-      {/* Botones solo en chat de comisión */}
       {isCommissionChat && lastCommission && (
-        <View style={{ flexDirection: 'row', justifyContent: 'space-around', padding: 12, backgroundColor: '#fff', borderTopWidth: 1, borderColor: '#eee' }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-around', padding: 12, borderTopWidth: 1, borderColor: '#eee' }}>
           {isVendedor && (
             <>
               <TouchableOpacity
-                style={{ backgroundColor: '#007b7f', borderRadius: 20, paddingVertical: 10, paddingHorizontal: 22 }}
+                style={{ backgroundColor: '#70c0b7', borderRadius: 20, paddingVertical: 10, paddingHorizontal: 22 }}
                 onPress={() => setShowModal(true)}
               >
                 <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Enviar oferta</Text>
@@ -239,7 +230,7 @@ export default function ChatWithUser() {
           )}
           {isComprador && (
             <TouchableOpacity
-              style={{ backgroundColor: '#2ecc71', borderRadius: 20, paddingVertical: 10, paddingHorizontal: 22 }}
+              style={{ backgroundColor: '#70c0b7', borderRadius: 20, paddingVertical: 10, paddingHorizontal: 22 }}
               onPress={() => {
                 if (lastCommission.price === null) {
                   Alert.alert(
@@ -257,7 +248,6 @@ export default function ChatWithUser() {
         </View>
       )}
 
-      {/* Modal para poner precio: SIEMPRE FUERA del contenedor de botones */}
       {showModal && (
         <View style={{
           position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
@@ -284,9 +274,8 @@ export default function ChatWithUser() {
         </View>
       )}
 
-      {/* Input */}
       <View style={styles.inputBar}>
-        <TextInput
+        <CustomTextInput
           value={input}
           onChangeText={setInput}
           placeholder="Escribe un mensaje..."
@@ -308,7 +297,6 @@ const styles = StyleSheet.create({
     paddingTop: 18,
     paddingBottom: 10,
     paddingHorizontal: 10,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderColor: '#eee',
     gap: 10,
@@ -349,10 +337,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
     backgroundColor: '#fff',
     shadowColor: '#000',
-    shadowOpacity: 0.04,
     shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 2,
-    elevation: 1,
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   bubbleLeft: {
     alignSelf: 'flex-start',
@@ -378,16 +366,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 8,
-    backgroundColor: '#fff',
     borderTopWidth: 1,
     borderColor: '#eee',
   },
   input: {
     flex: 1,
-    borderWidth: 0,
     borderRadius: 20,
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    marginTop: 15,
     backgroundColor: '#f2f2f2',
     fontSize: 16,
     marginRight: 8,
@@ -400,5 +386,10 @@ const styles = StyleSheet.create({
     padding: 10,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
 });

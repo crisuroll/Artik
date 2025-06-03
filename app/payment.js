@@ -48,7 +48,7 @@ export default function PaymentPage() {
   if (loadingCommission) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#007b7f" />
+        <ActivityIndicator size="large" color="#70c0b7" />
       </View>
     );
   }
@@ -119,7 +119,6 @@ export default function PaymentPage() {
 
         <Text style={styles.sectionTitle}>Método de pago</Text>
         <View style={styles.infoCard}>
-          {/* Selector de métodos */}
           <TouchableOpacity
             style={[
               styles.paymentOption,
@@ -179,8 +178,7 @@ export default function PaymentPage() {
           <Text style={styles.payBtnText}>Pagar {totalToPay.toFixed(2)} €</Text>
         </TouchableOpacity>
 
-        {/* MODALS (puedes dejar los mismos que ya tienes abajo) */}
-        <Modal visible={addressModal} transparent animationType="slide">
+        <Modal visible={addressModal} transparent animationType="fade">
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>Editar dirección</Text>
@@ -214,7 +212,7 @@ export default function PaymentPage() {
           </View>
         </Modal>
 
-        <Modal visible={phoneModal} transparent animationType="slide">
+        <Modal visible={phoneModal} transparent animationType="fade">
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>Editar teléfono</Text>
@@ -237,7 +235,7 @@ export default function PaymentPage() {
           </View>
         </Modal>
 
-        <Modal visible={paymentModal} transparent animationType="slide">
+        <Modal visible={paymentModal} transparent animationType="fade">
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>Editar tarjeta</Text>
@@ -358,26 +356,8 @@ export default function PaymentPage() {
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.sectionTitle}>Tipo de entrega</Text>
-      <View style={styles.infoCard}>
-        <Text>📍 En punto de recogida (Gratis)</Text>
-        <Text style={{ color: "#888" }}>En el punto de recogida en 2 - 5 días laborables</Text>
-      </View>
-
-      <Text style={styles.sectionTitle}>Datos de contacto</Text>
-      <View style={styles.infoCard}>
-        <Text>{phone}</Text>
-        <TouchableOpacity style={styles.editBtn} onPress={() => {
-          setTempPhone(phone);
-          setPhoneModal(true);
-        }}>
-          <Text style={styles.editBtnText}>Editar</Text>
-        </TouchableOpacity>
-      </View>
-
       <Text style={styles.sectionTitle}>Método de pago</Text>
       <View style={styles.infoCard}>
-        {/* Selector de métodos */}
         <TouchableOpacity
           style={[
             styles.paymentOption,
@@ -437,8 +417,7 @@ export default function PaymentPage() {
         <Text style={styles.payBtnText}>Pagar {totalToPay.toFixed(2)} €</Text>
       </TouchableOpacity>
 
-      {/* MODALS */}
-      <Modal visible={addressModal} transparent animationType="slide">
+      <Modal visible={addressModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Editar dirección</Text>
@@ -472,7 +451,7 @@ export default function PaymentPage() {
         </View>
       </Modal>
 
-      <Modal visible={phoneModal} transparent animationType="slide">
+      <Modal visible={phoneModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Editar teléfono</Text>
@@ -495,7 +474,7 @@ export default function PaymentPage() {
         </View>
       </Modal>
 
-      <Modal visible={paymentModal} transparent animationType="slide">
+      <Modal visible={paymentModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Editar tarjeta</Text>
@@ -573,7 +552,6 @@ function SummaryRow({ label, value, green }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fafafd",
     padding: 18,
   },
   centered: {
@@ -622,19 +600,19 @@ const styles = StyleSheet.create({
   summaryTotalLabel: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#222",
+    color: "#70c0b7",
   },
   summaryTotalValue: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#007b7f",
+    color: "#70c0b7",
   },
   sectionTitle: {
     fontWeight: "bold",
     fontSize: 18,
     marginTop: 18,
     marginBottom: 8,
-    color: "#222",
+    color: "#70c0b7",
   },
   productCard: {
     flexDirection: "row",
@@ -672,7 +650,7 @@ const styles = StyleSheet.create({
   productPrice: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#007b7f",
+    color: "#70c0b7",
     marginLeft: 8,
   },
   infoCard: {
@@ -692,7 +670,7 @@ const styles = StyleSheet.create({
     color: "#222",
   },
   payBtn: {
-    backgroundColor: "#007b7f",
+    backgroundColor: "#70c0b7",
     borderRadius: 30,
     paddingVertical: 16,
     alignItems: "center",
@@ -722,7 +700,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   editBtnText: {
-    color: "#007b7f",
+    color: "#70c0b7",
     fontWeight: "bold",
     fontSize: 14,
   },

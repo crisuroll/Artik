@@ -3,17 +3,34 @@ import { View, Text, FlatList, StyleSheet, Image, ActivityIndicator, TouchableOp
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useLoadedChallenge } from '../hooks/useChallenges';
 import Post from '../components/Post';
+import { supabase } from '../supabase/supabaseClient';
+import BackButton from '../components/BackButton';
 
 export default function LoadedChallengePage() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const [activeMenuPostId, setActiveMenuPostId] = useState(null);
+  const [creator, setCreator] = useState(null);
 
   const { challenge, posts, loading, fetchChallengeAndPosts } = useLoadedChallenge(id);
 
   useEffect(() => {
     fetchChallengeAndPosts();
   }, [fetchChallengeAndPosts]);
+
+  useEffect(() => {
+    const fetchCreator = async () => {
+      if (challenge?.user_id) {
+        const { data, error } = await supabase
+          .from('users')
+          .select('username, nickname, avatar_url')
+          .eq('id', challenge.user_id)
+          .single();
+        if (!error) setCreator(data);
+      }
+    };
+    fetchCreator();
+  }, [challenge?.user_id]);
 
   const handlePostClick = (postId) => {
     router.push(`/loaded_post?postId=${postId}`);
@@ -45,13 +62,33 @@ export default function LoadedChallengePage() {
     </TouchableOpacity>
   );
 
+  const imageAspectRatio =
+    challenge.width && challenge.height
+      ? challenge.width / challenge.height
+      : 1.5;
+
   return (
     <View style={styles.container}>
+      <BackButton fallback="/challenges" />
       <Image
         source={{ uri: challenge.image_url || 'https://via.placeholder.com/200' }}
-        style={styles.challengeImage}
+        style={[
+          styles.challengeImage,
+          { aspectRatio: imageAspectRatio, height: undefined }
+        ]}
         onError={(error) => console.error('Error loading challenge image:', error.nativeEvent)}
       />
+      <View style={styles.creatorRow}>
+        {creator?.avatar_url && (
+          <Image
+            source={{ uri: creator.avatar_url }}
+            style={styles.creatorAvatar}
+          />
+        )}
+        <Text style={styles.creatorUsername}>
+          {creator?.username ? `${creator.nickname} @${creator.username}` : ''}
+        </Text>
+      </View>
       <Text style={styles.challengeTitle}>{challenge.title}</Text>
       <Text style={styles.challengeDescription}>{challenge.description}</Text>
 
@@ -87,9 +124,27 @@ const styles = StyleSheet.create({
   },
   challengeImage: {
     width: '100%',
-    height: 200,
     borderRadius: 10,
-    marginBottom: 16,
+    marginBottom: 12,
+    resizeMode: 'cover',
+  },
+  creatorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 8,
+  },
+  creatorAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: 8,
+    backgroundColor: '#eee',
+  },
+  creatorUsername: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: 'bold',
   },
   challengeTitle: {
     fontSize: 24,

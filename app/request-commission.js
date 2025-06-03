@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import BackButton from "../components/BackButton";
 import Dropdown from "../components/Dropdown";
+import CustomTextInput from "../components/CustomTextInput";
 import { useCommission } from "../hooks/useShop";
 import { supabase } from '../supabase/supabaseClient';
 import { loadUser } from '../services/usersService';
 
 export default function RequestCommission() {
   const params = useLocalSearchParams();
-  console.log("params:", params);
   const artistId = params.artistId;
-  console.log("artistId:", artistId);
   const [userId, setUserId] = useState(params.userId);
   const router = useRouter();
 
@@ -28,10 +27,7 @@ export default function RequestCommission() {
     }
   }, [artistId, loadCommissionTab]);
 
-  console.log("artistId antes del useEffect:", artistId);
-
   useEffect(() => {
-    console.log("Entrando en useEffect con artistId:", artistId);
     if (artistId) {
       supabase
         .from("commissions_tab")
@@ -71,7 +67,6 @@ export default function RequestCommission() {
 
   const noOptions = !typeOptions.length || !numCharactersOptions.length || !sizeOptions.length;
 
-  console.log("commissionTab", commissionTab);
 
   return (
     <KeyboardAvoidingView
@@ -111,7 +106,7 @@ export default function RequestCommission() {
             />
           </>
         )}
-        <TextInput
+        <CustomTextInput
           style={[styles.input, { height: 80 }]}
           placeholder="Descripción de tu pedido"
           value={userDescription}
@@ -135,14 +130,13 @@ export default function RequestCommission() {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    backgroundColor: "#fafafd",
     alignItems: "center",
   },
   title: {
     fontWeight: "bold",
     fontSize: 22,
     marginBottom: 14,
-    color: "#222",
+    color: "#70c0b7",
   },
   tablilla: {
     width: 220,
@@ -152,12 +146,20 @@ const styles = StyleSheet.create({
     backgroundColor: "#eee",
   },
   sendBtn: {
-    backgroundColor: "#007b7f",
-    borderRadius: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 30,
-    alignSelf: "flex-end",
-    marginBottom: 18,
+    height: 45,
+    width: 160,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+    marginTop: 10,
+    marginBottom: 30,
+    backgroundColor: "#70c0b7",
   },
   sendBtnText: {
     color: "#fff",
@@ -165,69 +167,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   input: {
-    width: "100%",
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 12,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-  },
-  chatBox: {
-    width: "100%",
-    minHeight: 220,
-    backgroundColor: "#f4f4f4",
-    borderRadius: 12,
-    marginTop: 18,
-    padding: 10,
-    flexDirection: "column",
-    justifyContent: "flex-end",
-  },
-  chatInputRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 8,
-  },
-  chatInput: {
-    flex: 1,
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    marginRight: 8,
-  },
-  sendBtnSmall: {
-    backgroundColor: "#007b7f",
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 18,
-  },
-  messageBubble: {
-    marginVertical: 4,
-    maxWidth: "80%",
-    padding: 10,
-    borderRadius: 14,
-  },
-  myMessage: {
-    backgroundColor: "#c7f5f7",
-    alignSelf: "flex-end",
-  },
-  otherMessage: {
-    backgroundColor: "#fff",
-    alignSelf: "flex-start",
-  },
-  messageText: {
-    fontSize: 15,
-    color: "#222",
-  },
-  messageTime: {
-    fontSize: 11,
-    color: "#888",
-    alignSelf: "flex-end",
-    marginTop: 2,
+
   },
 });

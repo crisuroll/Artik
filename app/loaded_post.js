@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, FlatList, Image } from 'react-native';
+import { View, Text, StyleSheet, TextInput, ScrollView, FlatList, TouchableOpacity, Image } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useLoadPost } from '../hooks/usePosts';
 import { loadUser } from '../services/usersService';
 import Svg, { Path } from 'react-native-svg';
 import { getPostInteractions, interactWithPost } from '../services/postsService';
 import PostInteractions from '../components/PostInteractions';
+import BackButton from '../components/BackButton';
 
 export default function PostDetailScreen() {
   const router = useRouter();
@@ -61,10 +62,7 @@ export default function PostDetailScreen() {
     <View style={styles.container}>
 
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>▶ Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.dots}>●●●</Text>
+        <BackButton fallback={() => router.back()} />
         <View style={styles.userRow}>
           <Text style={styles.username}>{post.users?.username || 'Anonymous'}</Text>
           {post.users?.avatar_url ? (
@@ -144,7 +142,6 @@ export default function PostDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     paddingTop: 40,
   },
   header: {
@@ -155,10 +152,6 @@ const styles = StyleSheet.create({
   },
   backText: {
     color: '#333',
-  },
-  dots: {
-    color: '#00b3b3',
-    fontSize: 12,
   },
   userRow: {
     flexDirection: 'row',

@@ -5,7 +5,6 @@ import { Link } from 'expo-router';
 function NavBarMobile() {
     return(
         <View style={styles.navbar}>
-            {/* Home */}
             <Pressable 
                 style={styles.iconContainer}
             >
@@ -20,8 +19,6 @@ function NavBarMobile() {
                 </Svg>
                 </Link>
             </Pressable>
-
-            {/* Search */}
             <Pressable 
                 style={styles.iconContainer}
             >
@@ -36,8 +33,6 @@ function NavBarMobile() {
                 </Svg>
                 </Link>
             </Pressable>
-
-            {/* Challenges */}
             <Pressable 
                 style={styles.iconContainer}
             >
@@ -52,8 +47,6 @@ function NavBarMobile() {
                 </Svg>
                 </Link>
             </Pressable>
-
-            {/* Galeria */}
             <Pressable 
                 style={styles.iconContainer}
             >
@@ -68,8 +61,6 @@ function NavBarMobile() {
                 </Svg>
                 </Link>
             </Pressable>
-
-            {/* DMs */}
             <Pressable 
                 style={styles.iconContainer}
             >

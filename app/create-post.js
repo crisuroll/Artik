@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Pressable, Dimensions } from 'react-native';
 import BackButton from '../components/BackButton';
 import Dropdown from '../components/Dropdown';
 import { useCreatePost } from '../hooks/usePosts';
 import UploadFile from '../components/UploadFile';
+import CustomTextInput from '../components/CustomTextInput';
+import image from '../imgCropper/components/image';
+
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
 
 export default function CreatePostPage() {
   const {
@@ -29,15 +34,15 @@ export default function CreatePostPage() {
         bucketName="posts"
         uploading={uploading}
         setUploading={setUploading}
+        style={styles.imageContainer}
       />
 
-      <TextInput
+      <CustomTextInput
         placeholder="Title"
-        style={styles.input}
         value={title}
         onChangeText={setTitle}
       />
-      <TextInput
+      <CustomTextInput
         placeholder="Description"
         style={[styles.input, styles.textArea]}
         multiline
@@ -45,8 +50,8 @@ export default function CreatePostPage() {
         value={description}
         onChangeText={setDescription}
       />
-      <View style={styles.row}>
-        <View style={styles.halfInput}>
+      <View style={{ flexDirection: 'column' }}>
+        <View style={styles.dropdownContainer}>
           {loading ? (
             <ActivityIndicator size="small" color="#000" />
           ) : (
@@ -58,7 +63,7 @@ export default function CreatePostPage() {
             />
           )}
         </View>
-        <View style={styles.halfInput}>
+        <View style={styles.dropdownContainer}>
           {loading ? (
             <ActivityIndicator size="small" color="#000" />
           ) : (
@@ -88,7 +93,7 @@ export default function CreatePostPage() {
       </View>
 
       {challengeChecked && (
-        <View style={styles.challengeDropdownContainer}>
+        <View style={styles.dropdownContainer}>
           {loading ? (
             <ActivityIndicator size="small" color="#000" />
           ) : (
@@ -102,34 +107,35 @@ export default function CreatePostPage() {
         </View>
       )}
 
-      <TextInput
-        placeholder="Tags (optional)"
-        style={styles.input}
-        value={tags}
-        onChangeText={setTags}
-      />
-
-      <TouchableOpacity style={styles.postButton} onPress={handlePost} disabled={posting}>
-        {posting ? (
-          <ActivityIndicator size="small" color="#fff" />
-        ) : (
-          <Text style={styles.postButtonText}>Post</Text>
-        )}
-      </TouchableOpacity>
+      <Pressable
+        onPress={handlePost}
+        disabled={posting}
+        style={({ pressed }) => [
+          styles.postButton,
+          posting && styles.postButtonDisabled,
+          { backgroundColor: pressed ? '#5ea8a0' : '#70c0b7' }
+        ]}
+      >
+        <Text style={styles.postButtonText}>
+          {posting ? "Publicando..." : "Post"}
+        </Text>
+      </Pressable>
+      
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { 
-    padding: 16, 
-    paddingBottom: 100 
+    flex: 1,
+    padding: 40,
   },
-  input: { 
-    backgroundColor: '#f2f2f2', 
-    padding: 12, 
-    borderRadius: 10, 
-    marginBottom: 12 
+  imageContainer: {
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 20,
+    marginBottom: 20,
   },
   textArea: { 
     height: 100 
@@ -139,17 +145,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  halfInput: { 
-    backgroundColor: '#f2f2f2', 
-    padding: 12, 
-    borderRadius: 10, 
-    flex: 0.48 
-  },
-  challengeDropdownContainer: {
-    backgroundColor: '#f2f2f2',
-    padding: 12,
-    borderRadius: 10,
-    marginTop: 10,
+  dropdownContainer: {
+    width: 350,
+    alignSelf: 'center',
     marginBottom: 16,
   },
   checkbox: { 
@@ -161,29 +159,33 @@ const styles = StyleSheet.create({
     borderColor: '#000',
   },
   challengeLabel: {
+    color: '#70c0b7',
     fontSize: 16,
     fontWeight: '500',
+    paddingLeft: windowWidth < 426 ?
+      0 :
+        windowWidth < 769 ? 
+          170 : 590,
   },
   postButton: { 
-    backgroundColor: '#70c0b7', 
-    padding: 15, 
-    borderRadius: 30, 
-    alignItems: 'center', 
-    elevation: 3, 
-    marginTop: 20 
+    height: 45,
+    width: 160,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
   postButtonText: { 
     fontWeight: 'bold',
     color: 'white',
   },
-  uploadedImageContainer: {
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  uploadedImage: {
-    width: 300,
-    height: 180,
-    borderRadius: 20,
+  postButtonDisabled: {
+    opacity: 0.6,
   },
   changeImageButton: {
     marginTop: 10,
@@ -195,19 +197,6 @@ const styles = StyleSheet.create({
   changeImageText: {
     color: 'white',
     fontWeight: 'bold',
-  },
-  uploadContainer: {
-    borderStyle: 'dashed',
-    borderWidth: 2,
-    borderColor: '#70c0b7',
-    borderRadius: 10,
-    padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  uploadDesign: {
-    alignItems: 'center',
   },
   icon: {
     marginBottom: 8,

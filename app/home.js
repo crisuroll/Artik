@@ -1,10 +1,13 @@
 import React, { useEffect } from 'react';
-import { View, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
-import { interactWithPost, getPostInteractions } from '../services/postsService';
+import { interactWithPost } from '../services/postsService';
 import Post from '../components/Post';
 import CreatePostButton from '../components/CreatePostButton';
 import { useHomePosts } from '../hooks/usePosts';
+
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
 
 export default function Home() {
   const router = useRouter();
@@ -66,11 +69,13 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.header}>Inicio</Text>
       <FlatList
         data={posts}
         renderItem={renderPost}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
       />
       <CreatePostButton onPress={() => router.push('/create-post')} />
     </View>
@@ -83,9 +88,16 @@ const styles = StyleSheet.create({
     maxWidth: 800,
     width: '100%',
     alignSelf: 'center',
+    paddingTop: windowWidth > 425 ? 50 : 0,
+    paddingHorizontal: windowWidth < 426 ? 16 : 0,
+  },
+  header: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#70c0b1',
   },
   listContent: {
-    paddingHorizontal: 15,
     paddingBottom: 80,
   },
 });

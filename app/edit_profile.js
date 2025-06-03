@@ -1,27 +1,91 @@
-import { View, TextInput, ActivityIndicator, StyleSheet, Text, ScrollView, Dimensions, TouchableOpacity, Pressable } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, ActivityIndicator, StyleSheet, Text, ScrollView, Dimensions, Pressable, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import { supabase } from '../supabase/supabaseClient';
 import UploadFile from '../components/UploadFile';
-import { useEditProfile } from '../hooks/useAuth';
 import BackButton from '../components/BackButton';
+import CustomTextInput from '../components/CustomTextInput';
 
 const windowWidth = Dimensions.get('window').width;
-const windowHeight = Dimensions.get('window').height;
 
 export default function EditProfile() {
   const router = useRouter();
-  const {
-    loading,
-    saving,
-    nickname, setNickname,
-    username, setUsername,
-    email, setEmail,
-    avatarUrl, setAvatarUrl,
-    bio, setBio,
-    uploading, setUploading,
-    handleSave,
-  } = useEditProfile();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const [username, setUsername] = useState('');
+  const [nickname, setNickname] = useState('');
+  const [email, setEmail] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [bio, setBio] = useState('');
+  const [uploading, setUploading] = useState(false);
 
-  console.log({ nickname, username, email, avatarUrl, bio });
+  useEffect(() => {
+    const fetchUser = async () => {
+      setLoading(true);
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError || !authData?.user) {
+        console.log('Error: No se pudo obtener el usuario autenticado.', authError);
+        setLoading(false);
+        return;
+      }
+      const id = authData.user.id;
+      setUserId(id);
+
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('username, nickname, email, avatar_url, bio')
+        .eq('id', id)
+        .single();
+
+      if (userError || !userData) {
+        console.log('Error: No se pudieron cargar los datos del usuario.', userError);
+      } else {
+        setUsername(userData.username);
+        setNickname(userData.nickname || '');
+        setEmail(userData.email);
+        setAvatarUrl(userData.avatar_url || '');
+        setBio(userData.bio || '');
+        console.log('Datos de usuario cargados:', userData);
+      }
+      setLoading(false);
+    };
+
+    fetchUser();
+  }, []);
+
+  const handleSave = async () => {
+    if (!username || !email) {
+      Alert.alert('Error', 'Username y email son obligatorios.');
+      return;
+    }
+    setSaving(true);
+    console.log('Intentando actualizar usuario con id:', userId);
+    const { error, data } = await supabase
+      .from('users')
+      .update({
+        username,
+        nickname,
+        email,
+        avatar_url: avatarUrl,
+        bio,
+      })
+      .eq('id', userId)
+      .select();
+
+    if (error) {
+      Alert.alert('Error', 'No se pudo actualizar el perfil.');
+      console.log('Error: No se pudo actualizar el perfil.', error);
+    } else if (data.length === 0) {
+      Alert.alert('Error', 'No se encontró ningún usuario para actualizar.');
+      console.log('No se encontró ningún usuario para actualizar. userId:', userId);
+    } else {
+      Alert.alert('Éxito', 'Perfil actualizado correctamente.');
+      console.log('Perfil actualizado correctamente.', data);
+      router.replace('/my-user');
+    }
+    setSaving(false);
+  };
 
   if (loading) return (
     <View style={styles.loadingContainer}>
@@ -31,7 +95,7 @@ export default function EditProfile() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <BackButton fallback="/profile" />
+      <BackButton fallback={`/${username}`} />
       <Text style={styles.title}>Editar perfil</Text>
 
       <View style={styles.avatarSection}>
@@ -41,13 +105,18 @@ export default function EditProfile() {
           onUploadSuccess={setAvatarUrl}
           uploading={uploading}
           setUploading={setUploading}
+          style={{
+            width: 90,
+            height: 90,
+            borderRadius: 45,
+            overflow: 'hidden',
+          }}
         />
       </View>
 
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Nombre</Text>
-        <TextInput
-          style={styles.input}
+        <CustomTextInput
           value={nickname}
           onChangeText={setNickname}
           placeholder="Nombre"
@@ -57,8 +126,7 @@ export default function EditProfile() {
 
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Usuario</Text>
-        <TextInput
-          style={styles.input}
+        <CustomTextInput
           value={username}
           onChangeText={setUsername}
           placeholder="Usuario"
@@ -68,8 +136,7 @@ export default function EditProfile() {
 
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Email</Text>
-        <TextInput
-          style={styles.input}
+        <CustomTextInput
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
@@ -80,13 +147,13 @@ export default function EditProfile() {
 
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Bio</Text>
-        <TextInput
-          style={[styles.input, styles.bioInput]}
+        <CustomTextInput
           value={bio}
           onChangeText={setBio}
           multiline
           placeholder="Cuéntanos algo sobre ti..."
           placeholderTextColor="#bbb"
+          style={styles.bioInput}
         />
       </View>
 
@@ -126,31 +193,16 @@ const styles = StyleSheet.create({
     color: '#70c0b7',
   },
   avatarSection: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  avatar: {
     width: 90,
     height: 90,
     borderRadius: 45,
-    marginTop: 10,
+    overflow: 'hidden',
     borderWidth: 2,
     borderColor: '#70c0b7',
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    overflow: 'hidden',
-  },
-  avatarPlaceholder: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    backgroundColor: '#E0E0E0',
-    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 10,
+    justifyContent: 'center',
+    marginBottom: 24,
+    alignSelf: 'center',
   },
   inputGroup: {
     marginBottom: 18,
@@ -162,21 +214,7 @@ const styles = StyleSheet.create({
     marginLeft: windowWidth < 426 ?
       2 :
         windowWidth < 769 ? 
-          170 : 590,
-    
-  },
-  input: {
-    height: 50,
-    width: 350,
-    alignSelf: 'center',
-    borderWidth: 2,
-    borderColor: '#ccc',
-    borderRadius: 16,
-    paddingHorizontal: 15,
-    marginBottom: 15,
-    backgroundColor: '#fff',
-    color: '#333',
-    outlineColor: '#70c0b7',
+          170 : 220,
   },
   bioInput: {
     height: 80,

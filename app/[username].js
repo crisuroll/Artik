@@ -1,31 +1,44 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, FlatList, ActivityIndicator } from 'react-native';
+import React, { useMemo, useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Pressable, TextInput, Image, FlatList, ActivityIndicator, Modal } from 'react-native';
+import { supabase } from '../supabase/supabaseClient';
 import BackButton from '../components/BackButton';
 import Product from '../components/Product';
 import Post from '../components/Post';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { usePublicUser } from '../hooks/useAuth';
+import { useUserProfile } from '../hooks/useAuth'; 
 import { loadUser } from '../services/usersService';
 import { interactWithPost } from '../services/postsService';
 import { usePostStats } from '../hooks/usePostStats';
+import FollowButton from '../components/FollowButton';
+import CreatePostButton from '../components/CreatePostButton';
+import ProductCard from '../components/ProductCard';
+import MasonryList from '@react-native-seoul/masonry-list';
 
 export default function UserProfile() {
   const { username } = useLocalSearchParams();
   const router = useRouter();
   const [myUser, setMyUser] = useState(null);
   const [loadingMyUser, setLoadingMyUser] = useState(true);
+  const [userData, setUserData] = useState(null);
   const [refreshStats, setRefreshStats] = useState(0);
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [showFollowsModal, setShowFollowsModal] = useState(false);
+  const [followersData, setFollowersData] = useState([]);
+  const [followsData, setFollowsData] = useState([]);
+  const [loadingFollowers, setLoadingFollowers] = useState(false);
+  const [loadingFollows, setLoadingFollows] = useState(false);
+
   const {
-    userData,
     userPosts,
     userProducts,
     userReposts,
     description,
     commission,
     loading,
-  } = usePublicUser(username);
+    userId,
+  } = useUserProfile({ username });
 
-  React.useEffect(() => {
+  useEffect(() => {
     let mounted = true;
     loadUser().then(user => {
       if (mounted) {
@@ -35,6 +48,50 @@ export default function UserProfile() {
     });
     return () => { mounted = false; };
   }, []);
+
+  useEffect(() => {
+    const loadPublicUserData = async () => {
+      try {
+        const { data: publicUserData, error } = await supabase
+          .from('users')
+          .select('id, username, nickname, email, avatar_url, bio, followers, follows')
+          .eq('username', username)
+          .single();
+
+        if (error) throw error;
+
+        setUserData(publicUserData);
+      } catch (error) {
+        console.error('Error loading public user data:', error);
+      }
+    };
+
+    if (username) {
+      loadPublicUserData();
+    }
+  }, [username]);
+
+  useEffect(() => {
+    const refreshUserData = async () => {
+      try {
+        const { data: updatedUserData, error } = await supabase
+          .from('users')
+          .select('id, username, nickname, email, avatar_url, bio, followers, follows')
+          .eq('id', userData?.id)
+          .single();
+
+        if (error) throw error;
+
+        setUserData(updatedUserData);
+      } catch (error) {
+        console.error('Error refreshing user data:', error);
+      }
+    };
+
+    if (refreshStats > 0 && userData?.id) {
+      refreshUserData();
+    }
+  }, [refreshStats, userData?.id]);
 
   const isMyProfile = useMemo(() => {
     if (!myUser || !userData) return false;
@@ -65,20 +122,80 @@ export default function UserProfile() {
     );
   }
 
-  if (!username) return <Text>No se proporcionó un username</Text>;
-  if (loading || loadingMyUser) return <ActivityIndicator style={{ flex: 1 }} size="large" color="#007b7f" />;
+  const loadFollowersData = async () => {
+    setLoadingFollowers(true);
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, username, nickname, avatar_url')
+        .in('id', userData?.followers || []);
 
+      if (error) throw error;
+
+      setFollowersData(data || []);
+    } catch (error) {
+      console.error('Error loading followers data:', error);
+    } finally {
+      setLoadingFollowers(false);
+    }
+  };
+
+  const loadFollowsData = async () => {
+    setLoadingFollows(true);
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, username, nickname, avatar_url')
+        .in('id', userData?.follows || []);
+
+      if (error) throw error;
+
+      setFollowsData(data || []);
+    } catch (error) {
+      console.error('Error loading follows data:', error);
+    } finally {
+      setLoadingFollows(false);
+    }
+  };
+
+  const renderUserItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.userItem}
+      onPress={() => {
+        setShowFollowersModal(false);
+        router.push(`/${item.username}`);
+      }}
+    >
+      {item.avatar_url ? (
+        <Image source={{ uri: item.avatar_url }} style={styles.userAvatar} />
+      ) : (
+        <View style={styles.userAvatarPlaceholder}>
+          <Text style={styles.userAvatarText}>No Image</Text>
+        </View>
+      )}
+      <View style={styles.userInfo}>
+        <Text style={styles.userNickname}>{item.nickname || 'Usuario'}</Text>
+        <Text style={styles.userUsername}>@{item.username}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+  if (!username) return <Text>No se proporcionó un username</Text>;
+  if (loading || loadingMyUser || !userData) return <ActivityIndicator style={{ flex: 1 }} size="large" color="#70c0b7" />;
   return (
     <View style={styles.container}>
-      <BackButton />
+      <BackButton fallback='/home' />
 
       {isMyProfile && (
-        <TouchableOpacity
-          style={styles.editProfileButton}
+        <Pressable
+          style={({ pressed }) => [
+            styles.editProfileButton,
+            { backgroundColor: pressed ? '#5ea8a0' : '#70c0b7' }
+          ]}
           onPress={() => router.push('/edit_profile')}
         >
           <Text style={styles.editProfileButtonText}>Editar perfil</Text>
-        </TouchableOpacity>
+        </Pressable>
       )}
 
       <View style={styles.profileSection}>
@@ -92,25 +209,46 @@ export default function UserProfile() {
         <Text style={styles.username}>
           {userData?.nickname || 'Usuario'} <Text style={styles.at}>@{userData?.username || ''}</Text>
         </Text>
-
-        {!isMyProfile && (
-          <TouchableOpacity
-            style={styles.mailIcon}
-            onPress={() => router.push(`/dm/${userData?.username}`)}
-          >
-            <Text style={styles.icon}>✉️</Text>
+        <View style={styles.followRow}>
+          <TouchableOpacity onPress={() => { setShowFollowersModal(true); loadFollowersData(); }}>
+            <Text style={styles.followText}>
+              {userData?.followers?.length || 0} Seguidores
+            </Text>
           </TouchableOpacity>
-        )}
+          <TouchableOpacity onPress={() => { setShowFollowsModal(true); loadFollowsData(); }}>
+            <Text style={styles.followText}>
+              {userData?.follows?.length || 0} Seguidos
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.actionRow}>
+          {!isMyProfile && myUser?.userId && userData?.id && (
+            <FollowButton
+              myUserId={myUser.userId}
+              targetUser={userData}
+              onFollowChange={() => setRefreshStats(prev => prev + 1)}
+            />
+          )}
+
+          {!isMyProfile && (
+            <TouchableOpacity
+              style={styles.mailIcon}
+              onPress={() => router.push(`/dm/${userData?.username}`)}
+            >
+              <Text style={styles.icon}>✉️</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       <View style={styles.descriptionBox}>
-        <TextInput
-          placeholder="Descripción"
-          multiline
-          value={description}
-          editable={isMyProfile}
-          style={styles.description}
-        />
+        {description ? (
+          <Text style={styles.description}>{description}</Text>
+        ) : (
+          <Text style={[styles.description, styles.placeholder]}>
+            No hay descripción disponible
+          </Text>
+        )}
       </View>
 
       <View style={styles.tabRow}>
@@ -118,7 +256,7 @@ export default function UserProfile() {
           <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
             <Text
               style={[
-                styles.tab,
+                styles.tabBase,
                 activeTab === tab && styles.activeTab,
               ]}
             >
@@ -130,99 +268,80 @@ export default function UserProfile() {
 
       <View style={styles.contentArea}>
         {activeTab === 'Posts' && (
-          <FlatList
-            data={userPosts}
-            renderItem={({ item }) => (
-              <TouchableOpacity onPress={() => router.push({ pathname: '/loaded_post', params: { postId: item.id } })}>
-                <PostWithStats item={item} />
-              </TouchableOpacity>
+          <>
+            {isMyProfile && (
+              <CreatePostButton
+                onPress={() => router.push('/create-post')}
+              />
             )}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.postsList}
-          />
+            <FlatList
+              data={userPosts}
+              renderItem={({ item }) => (
+                <TouchableOpacity onPress={() => router.push({ pathname: '/loaded_post', params: { postId: item.id } })}>
+                  <PostWithStats item={item} />
+                </TouchableOpacity>
+              )}
+              keyExtractor={(item) => item.id}
+              ListEmptyComponent={
+                <Text style={styles.placeholder}>No hay posts</Text>
+              }
+              contentContainerStyle={styles.listContent}
+            />
+          </>
         )}
         {activeTab === 'Shop' && (
           <>
             {isMyProfile && (
-              <TouchableOpacity
-                style={{
-                  position: 'absolute',
-                  bottom: 80,
-                  right: 30,
-                  backgroundColor: '#007b7f',
-                  borderRadius: 30,
-                  padding: 16,
-                  elevation: 4,
-                  zIndex: 100,
-                }}
+              <CreatePostButton
                 onPress={() => router.push('/create-product')}
-              >
-                <Text style={{ color: '#fff', fontSize: 28 }}>＋</Text>
-              </TouchableOpacity>
+              />
             )}
-            <FlatList
+            <MasonryList
               data={userProducts}
               keyExtractor={(item) => item.id}
+              numColumns={2}
               renderItem={({ item }) => (
-                <TouchableOpacity onPress={() => router.push({ pathname: '/loaded_product', params: { productId: item.id } })}>
-                  <Product item={item} />
-                </TouchableOpacity>
+                <View style={styles.productGridItem}>
+                  <ProductCard
+                    item={item}
+                    onPress={() => router.push({ pathname: '/loaded_product', params: { productId: item.id } })}
+                  />
+                </View>
               )}
               ListEmptyComponent={
                 <Text style={styles.placeholder}>No hay productos</Text>
               }
-              contentContainerStyle={{ paddingBottom: 80 }}
+              contentContainerStyle={styles.listContent}
             />
             {!isMyProfile && (
               <TouchableOpacity
                 onPress={() => router.push('/cart')}
-                style={{
-                  position: 'absolute',
-                  bottom: 20,
-                  right: 30,
-                  backgroundColor: '#007b7f',
-                  borderRadius: 30,
-                  padding: 16,
-                  elevation: 4,
-                  zIndex: 100,
-                }}
+                style={styles.cartButton}
               >
-                <Text style={{ color: '#fff', fontSize: 28 }}>🛒</Text>
+                <Text style={styles.cartButtonText}>🛒</Text>
               </TouchableOpacity>
             )}
           </>
         )}
         {activeTab === 'Commissions' && (
-          <View style={{ flex: 1, alignItems: 'center', marginTop: 20 }}>
+          <View style={styles.commissionContainer}>
             {commission ? (
               <>
                 {commission.comm_url ? (
-                  <Image source={{ uri: commission.comm_url }} style={{ width: 200, height: 200, borderRadius: 10 }} />
+                  <Image source={{ uri: commission.comm_url }} style={styles.commissionImage} />
                 ) : null}
-                <Text style={{ fontWeight: 'bold', fontSize: 18, marginTop: 10 }}>{commission.title}</Text>
-                <Text style={{ color: '#555', marginTop: 6, textAlign: 'center' }}>{commission.description}</Text>
+                <Text style={styles.commissionTitle}>{commission.title}</Text>
+                <Text style={styles.commissionDescription}>{commission.description}</Text>
                 {isMyProfile ? (
                   <TouchableOpacity
-                    style={{
-                      marginTop: 12,
-                      backgroundColor: '#007b7f',
-                      borderRadius: 20,
-                      paddingVertical: 6,
-                      paddingHorizontal: 16,
-                    }}
+                    style={styles.commissionButton}
                     onPress={() => router.push('/edit_commission')}
                   >
-                    <Text style={{ color: '#fff' }}>Editar</Text>
+                    <Text style={styles.commissionButtonText}>Editar</Text>
                   </TouchableOpacity>
                 ) : (
                   <TouchableOpacity
-                    style={{
-                      marginTop: 18,
-                      backgroundColor: '#007b7f',
-                      borderRadius: 20,
-                      paddingVertical: 10,
-                      paddingHorizontal: 30,
-                    }}
+                    style={styles.requestCommissionButton}
                     onPress={() => {
                       if (userData?.id) {
                         router.push({
@@ -234,28 +353,17 @@ export default function UserProfile() {
                       }
                     }}
                   >
-                    <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>
-                      Solicitar comisión
-                    </Text>
+                    <Text style={styles.requestCommissionButtonText}>Solicitar comisión</Text>
                   </TouchableOpacity>
                 )}
               </>
             ) : (
               isMyProfile ? (
                 <TouchableOpacity
-                  style={{
-                    backgroundColor: '#e1f3f2',
-                    padding: 10,
-                    borderRadius: 20,
-                    alignSelf: 'center',
-                    marginBottom: 10,
-                    marginTop: 10,
-                  }}
+                  style={styles.createCommissionButton}
                   onPress={() => router.push('/edit_commission')}
                 >
-                  <Text style={{ color: '#007b7f', fontWeight: 'bold' }}>
-                    Crear commission
-                  </Text>
+                  <Text style={styles.createCommissionButtonText}>Crear commission</Text>
                 </TouchableOpacity>
               ) : (
                 <Text style={styles.placeholder}>No tiene commission publicada</Text>
@@ -272,9 +380,71 @@ export default function UserProfile() {
               </TouchableOpacity>
             )}
             keyExtractor={(item) => item.id}
+            ListEmptyComponent={
+              <Text style={styles.placeholder}>No hay reposts</Text>
+            }
+            contentContainerStyle={styles.listContent}
           />
         )}
       </View>
+
+      <Modal
+        visible={showFollowersModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowFollowersModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Seguidores</Text>
+            {loadingFollowers ? (
+              <ActivityIndicator size="large" color="#70c0b7" />
+            ) : (
+              <FlatList
+                data={followersData}
+                renderItem={renderUserItem}
+                keyExtractor={(item) => item.id}
+                ListEmptyComponent={<Text style={styles.placeholder}>No hay seguidores</Text>}
+              />
+            )}
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setShowFollowersModal(false)}
+            >
+              <Text style={styles.closeButtonText}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showFollowsModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowFollowsModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Seguidos</Text>
+            {loadingFollows ? (
+              <ActivityIndicator size="large" color="#70c0b7" />
+            ) : (
+              <FlatList
+                data={followsData}
+                renderItem={renderUserItem}
+                keyExtractor={(item) => item.id}
+                ListEmptyComponent={<Text style={styles.placeholder}>No hay seguidos</Text>}
+              />
+            )}
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setShowFollowsModal(false)}
+            >
+              <Text style={styles.closeButtonText}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -284,7 +454,6 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingHorizontal: 20,
     flex: 1,
-    backgroundColor: '#fff',
   },
   profileSection: {
     alignItems: 'center',
@@ -306,7 +475,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   avatarText: {
-    color: '#666',
+    color: '#aaa',
     fontSize: 12,
   },
   username: {
@@ -315,10 +484,23 @@ const styles = StyleSheet.create({
   },
   at: {
     fontWeight: 'normal',
-    color: '#666',
+    color: '#aaa',
+  },
+  followRow: {
+    flexDirection: 'row',
+    gap: 16,
+    marginTop: 4,
+  },
+  followText: {
+    color: '#aaa',
+    fontSize: 14,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 6,
   },
   mailIcon: {
-    marginTop: 6,
     backgroundColor: '#e1f3f2',
     borderRadius: 20,
     padding: 6,
@@ -330,7 +512,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 55,
     right: 20,
-    backgroundColor: '#007b7f',
+    backgroundColor: '#70c0b7',
     borderRadius: 20,
     paddingVertical: 6,
     paddingHorizontal: 16,
@@ -344,59 +526,182 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   description: {
-    backgroundColor: '#f2f2f2',
     padding: 10,
     borderRadius: 6,
     minHeight: 40,
+   
   },
   tabRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
+    borderTopColor: '#ccc',
+    borderTopWidth: 1,
     borderBottomColor: '#ccc',
     borderBottomWidth: 1,
-    marginTop: 10,
   },
-  tab: {
+  tabBase: {
     paddingVertical: 8,
     fontWeight: '600',
-    color: '#555',
+    color: '#70c0b7',
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: '#000',
+    borderBottomColor: '#5ea8a0',
     fontWeight: 'bold',
-    color: '#000',
+    color: '#5ea8a0',
   },
   contentArea: {
     flex: 1,
-  },
-  postsList: {
-    paddingTop: 10,
-  },
-  productsList: {
-    paddingTop: 10,
-  },
-  postContainer: {
-    marginBottom: 15,
-    borderRadius: 10,
-    overflow: 'hidden',
-    backgroundColor: '#f8f9fa',
-    padding: 10,
-  },
-  postImage: {
-    width: '100%',
-    height: 150,
-    borderRadius: 10,
-    marginBottom: 10,
-  },
-  postTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
   },
   placeholder: {
     color: '#aaa',
     textAlign: 'center',
     marginTop: 20,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  closeButton: {
+    marginTop: 10,
+    backgroundColor: '#70c0b7',
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+  },
+  closeButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  userItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    width: '100%',
+  },
+  userAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  userInfo: {
+    flex: 1,
+  },
+  userNickname: {
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  userUsername: {
+    color: '#aaa',
+    fontSize: 14,
+  },
+  floatingButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 30,
+    backgroundColor: '#70c0b7',
+    borderRadius: 30,
+    padding: 16,
+    elevation: 4,
+    zIndex: 100,
+  },
+  floatingButtonText: {
+    color: '#fff',
+    fontSize: 28,
+    textAlign: 'center',
+  },
+  commissionContainer: {
+    flex: 1,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  commissionImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 10,
+  },
+  commissionTitle: {
+    fontWeight: 'bold',
+    fontSize: 18,
+    marginTop: 10,
+  },
+  commissionDescription: {
+    color: '#555',
+    marginTop: 6,
+    textAlign: 'center',
+  },
+  commissionButton: {
+    marginTop: 12,
+    backgroundColor: '#70c0b7',
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+  },
+  commissionButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+
+  cartButton: {
+    position: 'absolute',
+    bottom: 100,
+    right: 30,
+    backgroundColor: '#70c0b7',
+    borderRadius: 30,
+    padding: 16,
+    elevation: 4,
+    zIndex: 100,
+  },
+  cartButtonText: {
+    color: '#fff',
+    fontSize: 28,
+  },
+  requestCommissionButton: {
+    marginTop: 18,
+    backgroundColor: '#70c0b7',
+    borderRadius: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+  },
+  requestCommissionButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  createCommissionButton: {
+    backgroundColor: '#e1f3f2',
+    padding: 10,
+    borderRadius: 20,
+    alignSelf: 'center',
+    marginBottom: 10,
+    marginTop: 10,
+  },
+  createCommissionButtonText: {
+    color: '#70c0b7',
+    fontWeight: 'bold',
+  },
+  listContent: {
+    paddingBottom: 80,
+  },
+  productGridItem: {
+    flex: 1,
   },
 });

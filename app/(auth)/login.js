@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Pressable, Dimensions, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useLogin } from '../../hooks/useAuth';
+import CustomTextInput from '../../components/CustomTextInput';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -21,19 +22,15 @@ export default function Login () {
     <View style={styles.container}>
       <Text style={styles.title}>Iniciar sesión</Text>
 
-      <TextInput
-        style={styles.input}
+      <CustomTextInput
         placeholder="Correo o usuario"
-        placeholderTextColor="#666"
         value={identifier}
         onChangeText={setIdentifier}
         autoCapitalize="none"
       />
 
-      <TextInput
-        style={styles.input}
+      <CustomTextInput
         placeholder="Contraseña"
-        placeholderTextColor="#666"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
@@ -68,19 +65,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 30,
     color: '#70c0b7'
-  },
-  input: {
-    height: 50,
-    width: 350,
-    alignSelf: 'center',
-    borderWidth: 2,
-    borderColor: '#ccc',
-    borderRadius: 16,
-    paddingHorizontal: 15,
-    marginBottom: 15,
-    backgroundColor: '#fff',
-    color: '#333',
-    outlineColor: '#70c0b7',
   },
   buttonsContainer: {
     flexDirection: 'row', 

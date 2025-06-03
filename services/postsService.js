@@ -61,7 +61,6 @@ export const fetchPostStats = async (postId) => {
       return { likes: 0, reposts: 0 };
     }
 
-    console.log('Fetched post stats:', data);
     return {
       likes: data?.likes?.length || 0,
       reposts: data?.reposts?.length || 0,
@@ -259,5 +258,18 @@ export async function fetchPostsByFilter({ filterType, filterId }) {
     .select('*')
     .eq(filterColumn, filterId);
   if (error) throw error;
+  return data;
+}
+
+export async function getPostsByUserId(userId) {
+  const { data, error } = await supabase
+    .from('posts')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+  if (error) {
+    console.error('Error fetching posts by user:', error);
+    return [];
+  }
   return data;
 }

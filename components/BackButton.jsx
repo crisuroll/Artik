@@ -5,13 +5,7 @@ export default function BackButton({ fallback = '/' }) {
   const router = useRouter();
 
   const handleBack = () => {
-    if (typeof router.canGoBack === 'function' && router.canGoBack()) {
-      router.back();
-    } else if (typeof window !== 'undefined' && window.history && window.history.length > 1) {
-      router.back();
-    } else {
-      router.replace(fallback);
-    }
+    router.push(fallback);
   };
 
   return (
@@ -34,7 +28,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     fontSize: 16,
-    color: '#666',
+    color: '#aaa',
     marginBottom: 10,
   },
 });

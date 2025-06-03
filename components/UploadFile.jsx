@@ -1,23 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Platform, View, Text, TouchableOpacity, StyleSheet, Image, ActivityIndicator, Modal } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../supabase/supabaseClient';
+import Cropper from '../imgCropper/components/Cropper';
 
-let EasyCrop = null;
-if (Platform.OS === 'web') {
-  EasyCrop = require('react-easy-crop').default;
-} else {
-  var ImageCropper = require('expo-image-cropper').default;
-}
-
-const UploadFile = ({ imageUrl, onUploadSuccess, bucketName, uploading, setUploading }) => {
+const UploadFile = ({ imageUrl, onUploadSuccess, bucketName, uploading, setUploading, style }) => {
   const [cropVisible, setCropVisible] = useState(false);
   const [imageToCrop, setImageToCrop] = useState(null);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
-  const [webImage, setWebImage] = useState(null);
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
+  const [imageDimensions, setImageDimensions] = useState({ width: 300, height: 180 });
+  const cropperRef = useRef(null);
+
+  // NO BORRAR: Función para procesar la imagen con el backend
+  const procesarImagenConBackend = async (file) => {
+    let formData = new FormData();
+
+    if (Platform.OS === 'web') {
+      const blob = await fetch(file.uri).then(res => res.blob());
+      formData.append('image', new File([blob], file.name, {
+        type: file.mimeType || 'image/jpeg',
+      }));
+    } else {
+      formData.append('image', {
+        uri: file.uri,
+        name: file.name || 'image.jpg',
+        type: file.mimeType || 'image/jpeg',
+      });
+    }
+
+    const response = await fetch('http://localhost:5000/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error('Error procesando imagen en el backend');
+    }
+
+    return await response.blob();
+  };
+
+  const getImageSize = (uri) => {
+    return new Promise((resolve, reject) => {
+      const img = new window.Image();
+      img.onload = () => resolve({ width: img.width, height: img.height });
+      img.onerror = reject;
+      img.src = uri;
+    });
+  };
 
   const pickDocument = async () => {
     try {
@@ -34,9 +64,6 @@ const UploadFile = ({ imageUrl, onUploadSuccess, bucketName, uploading, setUploa
 
       const file = result.assets[0];
       setImageToCrop(file.uri);
-      if (Platform.OS === 'web') {
-        setWebImage(file);
-      }
       setCropVisible(true);
       setUploading(false);
     } catch (error) {
@@ -45,101 +72,46 @@ const UploadFile = ({ imageUrl, onUploadSuccess, bucketName, uploading, setUploa
     }
   };
 
-  const handleCropMobile = async (croppedUri) => {
+  const handleCropDone = async (cropRect) => {
     setCropVisible(false);
     setUploading(true);
     try {
-      const response = await fetch(croppedUri);
-      const blob = await response.blob();
-
-      const fileExt = 'jpg';
-      const filePath = `${bucketName}/${Date.now()}.${fileExt}`;
-
-      const { error } = await supabase.storage
-        .from(bucketName)
-        .upload(filePath, blob, {
-          contentType: blob.type || 'image/jpeg',
-        });
-
-      if (error) {
-        setUploading(false);
-        console.error('Error subiendo archivo:', error);
-        return;
+      let croppedUri = imageToCrop;
+      if (Platform.OS === 'web') {
+        const img = new window.Image();
+        img.src = imageToCrop;
+        await new Promise(res => (img.onload = res));
+        const canvas = document.createElement('canvas');
+        canvas.width = cropRect.width;
+        canvas.height = cropRect.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(
+          img,
+          cropRect.x, cropRect.y, cropRect.width, cropRect.height,
+          0, 0, cropRect.width, cropRect.height
+        );
+        croppedUri = canvas.toDataURL('image/jpeg');
+      } else {
+        // En nativo, puedes usar react-native-image-editor o similar si necesitas recortar localmente
+        // Por simplicidad, aquí se asume que el backend recorta si hace falta
       }
 
-      const { data: urlData, error: urlError } = supabase
-        .storage
-        .from(bucketName)
-        .getPublicUrl(filePath);
-
-      if (urlError) {
-        setUploading(false);
-        console.error('Error obteniendo URL pública:', urlError);
-        return;
-      }
-
-      if (onUploadSuccess) {
-        onUploadSuccess(urlData.publicUrl);
-      }
-    } catch (error) {
-      console.error('Error al subir la imagen recortada:', error);
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const getCroppedImg = async (imageSrc, crop) => {
-    const createImage = (url) =>
-      new Promise((resolve, reject) => {
-        const image = new window.Image();
-        image.addEventListener('load', () => resolve(image));
-        image.addEventListener('error', (error) => reject(error));
-        image.setAttribute('crossOrigin', 'anonymous');
-        image.src = url;
+      const backendBlob = await procesarImagenConBackend({
+        uri: croppedUri,
+        name: 'cropped-image.jpg',
+        mimeType: 'image/jpeg',
       });
 
-    const image = await createImage(imageSrc);
-    const canvas = document.createElement('canvas');
-    canvas.width = crop.width;
-    canvas.height = crop.height;
-    const ctx = canvas.getContext('2d');
-
-    ctx.drawImage(
-      image,
-      crop.x,
-      crop.y,
-      crop.width,
-      crop.height,
-      0,
-      0,
-      crop.width,
-      crop.height
-    );
-
-    return new Promise((resolve) => {
-      canvas.toBlob((blob) => {
-        resolve(blob);
-      }, 'image/jpeg');
-    });
-  };
-
-  const handleCropWeb = async () => {
-    setCropVisible(false);
-    setUploading(true);
-    try {
-      const blob = await getCroppedImg(imageToCrop, croppedAreaPixels);
-
       const fileExt = 'jpg';
       const filePath = `${bucketName}/${Date.now()}.${fileExt}`;
 
       const { error } = await supabase.storage
         .from(bucketName)
-        .upload(filePath, blob, {
-          contentType: 'image/jpeg',
+        .upload(filePath, backendBlob, {
+          contentType: backendBlob.type || 'image/jpeg',
         });
 
       if (error) {
-        setUploading(false);
         console.error('Error subiendo archivo:', error);
         return;
       }
@@ -150,7 +122,6 @@ const UploadFile = ({ imageUrl, onUploadSuccess, bucketName, uploading, setUploa
         .getPublicUrl(filePath);
 
       if (urlError) {
-        setUploading(false);
         console.error('Error obteniendo URL pública:', urlError);
         return;
       }
@@ -164,44 +135,46 @@ const UploadFile = ({ imageUrl, onUploadSuccess, bucketName, uploading, setUploa
       setUploading(false);
     }
   };
+
+  const MAX_WIDTH = 350;
+  const MAX_HEIGHT = 350;
+
+  function getLimitedDimensions(width, height) {
+    let ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height, 1);
+    return {
+      width: Math.round(width * ratio),
+      height: Math.round(height * ratio),
+    };
+  }
+
+  useEffect(() => {
+    if (imageUrl) {
+      Image.getSize(
+        imageUrl,
+        (width, height) => {
+          const limited = getLimitedDimensions(width, height);
+          setImageDimensions(limited);
+        },
+        () => setImageDimensions({ width: 300, height: 180 })
+      );
+    }
+  }, [imageUrl]);
 
   return (
     <View style={styles.container}>
-      {/* Cropper para móvil */}
-      {Platform.OS !== 'web' && cropVisible && (
+      {/* Cropper para web y nativo */}
+      {cropVisible && imageToCrop && (
         <Modal visible={cropVisible} animationType="slide">
-          <ImageCropper
-            imageUri={imageToCrop}
-            onCancel={() => setCropVisible(false)}
-            onDone={handleCropMobile}
-            cropShape="round"
-            aspectRatio={{ width: 1, height: 1 }}
-          />
-        </Modal>
-      )}
-
-      {/* Cropper para web */}
-      {Platform.OS === 'web' && cropVisible && (
-        <Modal visible={cropVisible} animationType="slide" transparent>
-          <View style={{ flex: 1, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center' }}>
-            <View style={{ width: 300, height: 300, position: 'relative' }}>
-              <EasyCrop
-                image={imageToCrop}
-                crop={crop}
-                zoom={zoom}
-                aspect={1}
-                cropShape="round"
-                onCropChange={setCrop}
-                onCropComplete={(_, croppedAreaPixels) => setCroppedAreaPixels(croppedAreaPixels)}
-                onZoomChange={setZoom}
-              />
-            </View>
-            <TouchableOpacity style={{ marginTop: 20, backgroundColor: '#70c0b7', padding: 10, borderRadius: 8 }} onPress={handleCropWeb}>
-              <Text style={{ color: '#fff', fontWeight: 'bold' }}>Recortar y subir</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={{ marginTop: 10 }} onPress={() => setCropVisible(false)}>
-              <Text>Cancelar</Text>
-            </TouchableOpacity>
+          <View style={{ flex: 1, backgroundColor: '#000' }}>
+            <Cropper
+              ref={cropperRef}
+              uri={imageToCrop}
+              getImageSize={getImageSize}
+              onDone={handleCropDone}
+              onCancel={() => setCropVisible(false)}
+              aspectRatio={undefined}
+              hideFooter={false}
+            />
           </View>
         </Modal>
       )}
@@ -212,14 +185,29 @@ const UploadFile = ({ imageUrl, onUploadSuccess, bucketName, uploading, setUploa
             <ActivityIndicator size="large" color="#000" />
           ) : (
             <View style={styles.uploadDesign}>
-              <Ionicons name="cloud-upload-outline" size={50} color="#525252" style={styles.icon} />
+              <Ionicons name="cloud-upload-outline" size={30} color="#70c0b7" style={styles.icon} />
               <Text style={styles.browseButtonText}>Upload</Text>
             </View>
           )}
         </TouchableOpacity>
       ) : (
-        <TouchableOpacity onPress={pickDocument} style={styles.uploadedImageContainer}>
-          <Image source={{ uri: imageUrl }} style={styles.uploadedImage} resizeMode="cover" />
+        <TouchableOpacity
+          onPress={pickDocument}
+          style={[
+            styles.uploadedImageContainer,
+            { width: imageDimensions.width, height: imageDimensions.height },
+            style,
+          ]}
+        >
+          <Image
+            source={{ uri: imageUrl }}
+            style={[
+              styles.uploadedImage,
+              { width: imageDimensions.width, height: imageDimensions.height },
+              style,
+            ]}
+            resizeMode="cover"
+          />
         </TouchableOpacity>
       )}
     </View>
@@ -232,14 +220,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   uploadContainer: {
-    backgroundColor: '#ddd',
     padding: 30,
     borderRadius: 40,
     borderWidth: 2,
-    borderColor: '#525252',
+    borderColor: '#70c0b7',
     borderStyle: 'dashed',
-    height: 180,
-    width: 300,
+    height: 100,
+    width: 150,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -253,25 +240,8 @@ const styles = StyleSheet.create({
   },
   browseButtonText: {
     fontSize: 16,
-    color: '#525252',
-    marginBottom: 5,
-  },
-  uploadedImageContainer: {
-    alignItems: 'center',
-    marginBottom: 16,
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: '#70c0b7',
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-  },
-  uploadedImage: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    color: '#70c0b7',
+    marginBottom: 10,
   },
 });
 

@@ -19,7 +19,6 @@ export function useCommission(artistId, userId, router) {
   const loadCommissionTab = useCallback(async () => {
     if (!artistId) return setCommissionTab(null);
     const data = await fetchCommissionTab(artistId);
-    console.log("fetchCommissionTab result", data);
     setCommissionTab(data);
   }, [artistId]);
 
