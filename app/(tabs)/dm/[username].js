@@ -194,14 +194,14 @@ export default function ChatWithUser() {
           shadowOpacity: 0.08,
           shadowRadius: 4,
         }}>
-          <Text style={{ fontWeight: "bold", fontSize: 18, marginBottom: 8 }}>Tu última comisión solicitada</Text>
-          <Text><Text style={{ fontWeight: "bold" }}>Tipo:</Text> {lastCommission.type}</Text>
-          <Text><Text style={{ fontWeight: "bold" }}>Nº personajes:</Text> {lastCommission.num_characters}</Text>
-          <Text><Text style={{ fontWeight: "bold" }}>Tamaño:</Text> {lastCommission.size}</Text>
-          <Text><Text style={{ fontWeight: "bold" }}>Descripción:</Text> {lastCommission.description}</Text>
-          <Text><Text style={{ fontWeight: "bold" }}>Estado:</Text> {lastCommission.status}</Text>
+          <Text style={{ fontWeight: "bold", fontSize: 18, marginBottom: 8, fontFamily: 'Nunito', }}>Tu última comisión solicitada</Text>
+          <Text><Text style={{ fontWeight: "bold", fontFamily: 'Nunito', }}>Tipo:</Text> {lastCommission.type}</Text>
+          <Text><Text style={{ fontWeight: "bold", fontFamily: 'Nunito', }}>Nº personajes:</Text> {lastCommission.num_characters}</Text>
+          <Text><Text style={{ fontWeight: "bold", fontFamily: 'Nunito', }}>Tamaño:</Text> {lastCommission.size}</Text>
+          <Text><Text style={{ fontWeight: "bold", fontFamily: 'Nunito', }}>Descripción:</Text> {lastCommission.description}</Text>
+          <Text><Text style={{ fontWeight: "bold", fontFamily: 'Nunito', }}>Estado:</Text> {lastCommission.status}</Text>
           <Text>
-            <Text style={{ fontWeight: "bold" }}>Precio:</Text>{" "}
+            <Text style={{ fontWeight: "bold", fontFamily: 'Nunito', }}>Precio:</Text>{" "}
             {lastCommission.price === null ? "Sin oferta" : `${lastCommission.price} €`}
           </Text>
         </View>
@@ -254,7 +254,7 @@ export default function ChatWithUser() {
           backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', alignItems: 'center', zIndex: 1000
         }}>
           <View style={{ backgroundColor: '#fff', padding: 24, borderRadius: 12, width: 280 }}>
-            <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 12 }}>Introduce el precio (€)</Text>
+            <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 12, fontFamily: 'Nunito', }}>Introduce el precio (€)</Text>
             <TextInput
               value={offerPrice}
               onChangeText={setOfferPrice}
@@ -267,7 +267,7 @@ export default function ChatWithUser() {
                 <Text style={{ color: '#888' }}>Cancelar</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleSendOffer}>
-                <Text style={{ color: '#007b7f', fontWeight: 'bold' }}>Enviar</Text>
+                <Text style={{ color: '#007b7f', fontWeight: 'bold', fontFamily: 'Nunito', }}>Enviar</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -300,6 +300,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: '#eee',
     gap: 10,
+    fontFamily: 'Nunito',
   },
   avatar: {
     width: 38,
@@ -318,12 +319,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#e3e3e3',
     alignItems: 'center',
     justifyContent: 'center',
+    fontFamily: 'Nunito',
   },
   headerUsername: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#222',
     marginLeft: 4,
+    fontFamily: 'Nunito',
   },
   messagesContainer: {
     padding: 10,
@@ -341,6 +344,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
+    fontFamily: 'Nunito',
   },
   bubbleLeft: {
     alignSelf: 'flex-start',
@@ -355,12 +359,14 @@ const styles = StyleSheet.create({
   messageText: {
     fontSize: 16,
     color: '#222',
+    fontFamily: 'Nunito',
   },
   timeText: {
     fontSize: 11,
     color: '#666',
     alignSelf: 'flex-end',
     marginTop: 4,
+    fontFamily: 'Nunito',
   },
   inputBar: {
     flexDirection: 'row',
@@ -379,6 +385,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
     minHeight: 40,
     maxHeight: 90,
+    fontFamily: 'Nunito',
   },
   sendButton: {
     backgroundColor: '#70c0b7',

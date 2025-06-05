@@ -83,6 +83,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
     color: '#70c0b7',
+    fontFamily: 'Nunito',
   },
   emptyContainer: {
     flex: 1,
@@ -92,6 +93,7 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     color: '#888',
+    fontFamily: 'Nunito',
   },
   gridContainer: {
     padding: 16,
@@ -116,6 +118,7 @@ const styles = StyleSheet.create({
     shadowColor: 'transparent',
     borderWidth: 0,
     flex: 1,
+    fontFamily: 'Nunito',
   },
   challengeImage: {
     width: '100%',
@@ -132,5 +135,6 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     marginHorizontal: 8,
     color: '#333',
+    fontFamily: 'Nunito',
   },
 });

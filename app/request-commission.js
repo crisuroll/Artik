@@ -137,6 +137,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     marginBottom: 14,
     color: "#70c0b7",
+    fontFamily: 'Nunito',
   },
   tablilla: {
     width: 220,
@@ -165,8 +166,9 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     fontSize: 16,
+    fontFamily: 'Nunito',
   },
   input: {
-
+    fontFamily: 'Nunito',
   },
 });

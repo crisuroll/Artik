@@ -121,6 +121,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 18,
     color: 'red',
+    fontFamily: 'Nunito',
   },
   challengeImage: {
     width: '100%',
@@ -145,21 +146,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     fontWeight: 'bold',
+    fontFamily: 'Nunito',
   },
   challengeTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 8,
+    fontFamily: 'Nunito',
   },
   challengeDescription: {
     fontSize: 16,
     color: '#555',
     marginBottom: 16,
+    fontFamily: 'Nunito',
   },
   postsHeader: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 8,
+    fontFamily: 'Nunito',
   },
   listContent: {
     paddingBottom: 16,

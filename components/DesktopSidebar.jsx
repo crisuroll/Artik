@@ -149,6 +149,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: 'bold',
     color: '#70c0b7',
+    fontFamily: 'Nunito',
   },
   avatar: {
     width: 28,

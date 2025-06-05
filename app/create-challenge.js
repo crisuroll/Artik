@@ -69,7 +69,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#f2f2f2', 
     padding: 12, 
     borderRadius: 10, 
-    flex: 0.48 
+    flex: 0.48,
+    fontFamily: 'Nunito',
   },
   challengeDropdownContainer: {
     backgroundColor: '#f2f2f2',
@@ -89,6 +90,7 @@ const styles = StyleSheet.create({
   challengeLabel: {
     fontSize: 16,
     fontWeight: '500',
+    fontFamily: 'Nunito',
   },
   postButton: { 
     height: 45,
@@ -107,6 +109,7 @@ const styles = StyleSheet.create({
   postButtonText: { 
     fontWeight: 'bold',
     color: 'white',
+    fontFamily: 'Nunito',
   },
   postButtonDisabled: {
     opacity: 0.6,
@@ -130,5 +133,6 @@ const styles = StyleSheet.create({
   changeImageText: {
     color: 'white',
     fontWeight: 'bold',
+    fontFamily: 'Nunito',
   },
 });

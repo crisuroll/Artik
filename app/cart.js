@@ -83,6 +83,7 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     alignSelf: 'center',
     color: '#222',
+    fontFamily: 'Nunito',
   },
   card: {
     flexDirection: 'row',
@@ -96,6 +97,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
     alignItems: 'center',
+    fontFamily: 'Nunito',
   },
   image: {
     width: 80,
@@ -107,23 +109,27 @@ const styles = StyleSheet.create({
   info: {
     flex: 1,
     justifyContent: 'center',
+    fontFamily: 'Nunito',
   },
   productName: {
     fontSize: 17,
     fontWeight: '600',
     marginBottom: 4,
     color: '#222',
+    fontFamily: 'Nunito',
   },
   price: {
     fontSize: 16,
     color: '#70c0b7',
     fontWeight: 'bold',
     marginBottom: 2,
+    fontFamily: 'Nunito',
   },
   quantity: {
     fontSize: 15,
     color: '#666',
     marginBottom: 8,
+    fontFamily: 'Nunito',
   },
   removeBtn: {
     alignSelf: 'flex-start',
@@ -136,6 +142,7 @@ const styles = StyleSheet.create({
     color: '#b71c1c',
     fontWeight: 'bold',
     fontSize: 14,
+    fontFamily: 'Nunito',
   },
   empty: {
     textAlign: 'center',
@@ -154,12 +161,14 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 10,
     alignItems: 'center',
+    fontFamily: 'Nunito',
   },
   total: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#222',
     marginBottom: 12,
+    fontFamily: 'Nunito',
   },
   payBtn: {
     backgroundColor: '#70c0b7',
@@ -174,5 +183,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     letterSpacing: 1,
+    fontFamily: 'Nunito',
   },
 });

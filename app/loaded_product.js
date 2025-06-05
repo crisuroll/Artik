@@ -108,22 +108,26 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 8,
     textAlign: 'center',
+    fontFamily: 'Nunito',
   },
   price: {
     fontSize: 18,
     color: '#007b7f',
     fontWeight: 'bold',
     marginBottom: 6,
+    fontFamily: 'Nunito',
   },
   stock: {
     fontSize: 15,
     color: '#888',
     marginBottom: 10,
+    fontFamily: 'Nunito',
   },
   desc: {
     fontSize: 16,
     color: '#444',
     textAlign: 'center',
+    fontFamily: 'Nunito',
   },
   buyButton: { 
     height: 45,
@@ -141,6 +145,7 @@ const styles = StyleSheet.create({
   postButtonText: { 
     fontWeight: 'bold',
     color: 'white',
+    fontFamily: 'Nunito',
   },
   postButtonDisabled: {
     opacity: 0.6,

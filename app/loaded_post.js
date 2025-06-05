@@ -173,6 +173,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     justifyContent: 'space-between',
     color: '#70c0b7',
+    fontFamily: 'Nunito',
   },
   userRow: {
     flexDirection: 'row',
@@ -181,7 +182,8 @@ const styles = StyleSheet.create({
   username: {
     fontWeight: 'bold',
     marginRight: 10,
-    color: '#70c0b7'
+    color: '#70c0b7',
+    fontFamily: 'Nunito',
   },
   avatar: {
     width: 30,
@@ -209,7 +211,8 @@ const styles = StyleSheet.create({
   title: {
     fontWeight: 'bold',
     fontSize: 16,
-    color: '#70c0b7'
+    color: '#70c0b7',
+    fontFamily: 'Nunito',
   },
   actionButtons: {
     flexDirection: 'row',
@@ -229,10 +232,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 14,
     color: '#333',
+    fontFamily: 'Nunito',
   },
   description: {
     marginTop: 5,
     color: '#333',
+    fontFamily: 'Nunito',
   },
   detailsBox: {
     marginTop: 10,
@@ -253,22 +258,26 @@ const styles = StyleSheet.create({
   commentsTitle: {
     fontWeight: 'bold',
     marginBottom: 5,
-    color: '#70c0b7'
+    color: '#70c0b7',
+    fontFamily: 'Nunito',
   },
   comment: {
     marginBottom: 10,
     padding: 10,
     backgroundColor: '#f9f9f9',
     borderRadius: 10,
+    fontFamily: 'Nunito',
   },
   commentAuthor: {
     fontWeight: 'bold',
     fontSize: 14,
     marginBottom: 5,
+    fontFamily: 'Nunito',
   },
   commentContent: {
     fontSize: 14,
     color: '#333',
+    fontFamily: 'Nunito',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -287,11 +296,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 3 },
     shadowRadius: 5,
+    fontFamily: 'Nunito',
   },
   sendText: {
     color: '#70c0b7',
     marginLeft: 10,
     fontWeight: 'bold',
+    fontFamily: 'Nunito',
   },
   loadingContainer: {
     flex: 1,

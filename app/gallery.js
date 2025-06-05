@@ -108,6 +108,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
     color: '#70c0b1',
+    fontFamily: 'Nunito',
   },
   topFilters: {
     flexDirection: 'row',
@@ -118,17 +119,20 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#70c0b7',
     padding: 6,
+    fontFamily: 'Nunito',
   },
   activeTab: {
     fontWeight: 'bold',
     color: '#5ea8a0',
     backgroundColor: '#eee',
     borderRadius: 6,
+    fontFamily: 'Nunito',
   },
   subFilters: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 10,
+    fontFamily: 'Nunito',
   },
   subFilterItem: {
     fontSize: 14,
@@ -136,11 +140,13 @@ const styles = StyleSheet.create({
     marginRight: 15,
     paddingVertical: 4,
     paddingHorizontal: 8,
+    fontFamily: 'Nunito',
   },
   activeSubFilter: {
     color: '#5ea8a0',
     fontWeight: 'bold',
     textDecorationLine: 'underline',
+    fontFamily: 'Nunito',
   },
   masonryList: {
     marginTop: 5,
@@ -160,5 +166,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 14,
     color: '#999',
+    fontFamily: 'Nunito',
   },
 });

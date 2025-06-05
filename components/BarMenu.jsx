@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     left: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: 'white',
+    backgroundColor: '#f6fffe',
     padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 2, height: 0 },
@@ -134,8 +134,9 @@ const styles = StyleSheet.create({
   menuTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1a365d',
+    color: '#70c0b7',
     marginBottom: 30,
+    fontFamily: 'Nunito',
   },
   menuItem: {
     paddingVertical: 15,
@@ -144,7 +145,8 @@ const styles = StyleSheet.create({
   },
   menuText: {
     fontSize: 16,
-    color: '#2f4f75',
+    color: '#70c0b7',
+    fontFamily: 'Nunito',
   },
 });
 

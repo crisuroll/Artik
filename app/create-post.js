@@ -138,7 +138,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   textArea: { 
-    height: 100 
+    height: 100 ,
+    fontFamily: 'Nunito',
   },
   row: {
     flexDirection: 'row',
@@ -166,6 +167,7 @@ const styles = StyleSheet.create({
       0 :
         windowWidth < 769 ? 
           170 : 590,
+    fontFamily: 'Nunito',
   },
   postButton: { 
     height: 45,
@@ -183,6 +185,7 @@ const styles = StyleSheet.create({
   postButtonText: { 
     fontWeight: 'bold',
     color: 'white',
+    fontFamily: 'Nunito',
   },
   postButtonDisabled: {
     opacity: 0.6,
@@ -197,6 +200,7 @@ const styles = StyleSheet.create({
   changeImageText: {
     color: 'white',
     fontWeight: 'bold',
+    fontFamily: 'Nunito',
   },
   icon: {
     marginBottom: 8,
@@ -204,5 +208,6 @@ const styles = StyleSheet.create({
   browseButtonText: {
     color: '#525252',
     fontWeight: '500',
+    fontFamily: 'Nunito',
   },
 });

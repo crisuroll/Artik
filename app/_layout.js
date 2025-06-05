@@ -1,4 +1,5 @@
 import { Slot, usePathname } from "expo-router";
+import { useFonts } from "expo-font";
 import { useWindowDimensions, View, ActivityIndicator, StyleSheet } from "react-native";
 import { useState } from "react";
 import NavBarMobile from '../components/Navbar-Mobile';
@@ -7,8 +8,12 @@ import BarMenu from "../components/BarMenu";
 import DesktopSidebar from '../components/DesktopSidebar';
 import ChatsSidebar from '../components/ChatsSidebar';
 import { useAuthLayout } from "../hooks/useSession";
+import CookieBanner from '../components/CookieBanner';
 
 export default function Layout() {
+  const [fontsLoaded] = useFonts({
+    'Nunito': require('../assets/fonts/Nunito-VariableFont_wght.ttf'),
+  });
   const { width } = useWindowDimensions();
   const isDesktop = width >= 1024;
   const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -41,18 +46,17 @@ export default function Layout() {
       )}
 
       <View style={{ flex: 1 }}>
-        {/* Solo muestra HeaderProfile si no es un chat DM ni /request-commission */}
         {main && !isDesktop && !isEditScreen && !isDmChat && !isRequestCommission && (
           <HeaderProfile toggleMenu={toggleMenu} avatarUrl={avatarUrl} />
         )}
         <Slot />
-        {/* Solo muestra NavBarMobile si no es un chat DM ni /request-commission */}
         {!isAuthScreen && !isEditScreen && !isDesktop && !isDmChat && !isRequestCommission && (
           <View>
             <NavBarMobile />
           </View>
         )}
         {isMenuVisible && <BarMenu onClose={toggleMenu} />}
+        <CookieBanner />
       </View>
 
       {!isAuthScreen && isDesktop && (

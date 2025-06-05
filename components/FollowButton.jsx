@@ -50,7 +50,7 @@ function FollowButton({ myUserId, targetUser, onFollowChange }) {
       onPress={handlePress}
       disabled={loading}
     >
-      <Text style={{ color: isFollowing ? '#70c0b7' : '#fff', fontWeight: 'bold' }}>
+      <Text style={{ color: isFollowing ? '#70c0b7' : '#fff', fontWeight: 'bold', fontFamily: 'Nunito', }}>
         {isFollowing ? 'Siguiendo' : 'Seguir'}
       </Text>
     </TouchableOpacity>

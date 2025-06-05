@@ -117,7 +117,8 @@ const styles = StyleSheet.create({
       fontWeight: 'bold',
       textAlign: 'center',
       marginBottom: 30,
-      color: '#70c0b7'
+      color: '#70c0b7',
+      fontFamily: 'Nunito',
     },
     input: {
       height: 50,
@@ -127,7 +128,8 @@ const styles = StyleSheet.create({
       paddingHorizontal: 15,
       marginBottom: 15,
       backgroundColor: '#fff',
-      color: '#333'
+      color: '#333',
+      fontFamily: 'Nunito',
     },
     button: {
       height: 45,
@@ -144,7 +146,8 @@ const styles = StyleSheet.create({
     buttonText: {
       color: 'white',
       fontSize: 16,
-      fontWeight: '600'
+      fontWeight: '600',
+      fontFamily: 'Nunito',
     },
     link: {
       color: '#5ea8a0'

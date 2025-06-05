@@ -477,14 +477,17 @@ const styles = StyleSheet.create({
   avatarText: {
     color: '#aaa',
     fontSize: 12,
+    fontFamily: 'Nunito',
   },
   username: {
     fontWeight: 'bold',
     fontSize: 18,
+    fontFamily: 'Nunito',
   },
   at: {
     fontWeight: 'normal',
     color: '#aaa',
+    fontFamily: 'Nunito',
   },
   followRow: {
     flexDirection: 'row',
@@ -494,6 +497,7 @@ const styles = StyleSheet.create({
   followText: {
     color: '#aaa',
     fontSize: 14,
+    fontFamily: 'Nunito',
   },
   actionRow: {
     flexDirection: 'row',
@@ -521,6 +525,7 @@ const styles = StyleSheet.create({
   editProfileButtonText: {
     color: '#fff',
     fontWeight: 'bold',
+    fontFamily: 'Nunito',
   },
   descriptionBox: {
     marginBottom: 10,
@@ -529,7 +534,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 6,
     minHeight: 40,
-   
+    fontFamily: 'Nunito',
   },
   tabRow: {
     flexDirection: 'row',
@@ -543,6 +548,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     fontWeight: '600',
     color: '#70c0b7',
+    fontFamily: 'Nunito',
   },
   activeTab: {
     borderBottomWidth: 2,
@@ -557,6 +563,7 @@ const styles = StyleSheet.create({
     color: '#aaa',
     textAlign: 'center',
     marginTop: 20,
+    fontFamily: 'Nunito',
   },
   modalContainer: {
     flex: 1,
@@ -575,6 +582,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
+    fontFamily: 'Nunito',
   },
   closeButton: {
     marginTop: 10,
@@ -586,6 +594,7 @@ const styles = StyleSheet.create({
   closeButtonText: {
     color: '#fff',
     fontWeight: 'bold',
+    fontFamily: 'Nunito',
   },
   userItem: {
     flexDirection: 'row',
@@ -603,14 +612,17 @@ const styles = StyleSheet.create({
   },
   userInfo: {
     flex: 1,
+    fontFamily: 'Nunito',
   },
   userNickname: {
     fontWeight: 'bold',
     fontSize: 16,
+    fontFamily: 'Nunito',
   },
   userUsername: {
     color: '#aaa',
     fontSize: 14,
+    fontFamily: 'Nunito',
   },
   floatingButton: {
     position: 'absolute',
@@ -626,6 +638,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 28,
     textAlign: 'center',
+    fontFamily: 'Nunito',
   },
   commissionContainer: {
     flex: 1,
@@ -641,11 +654,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 18,
     marginTop: 10,
+    fontFamily: 'Nunito',
   },
   commissionDescription: {
     color: '#555',
     marginTop: 6,
     textAlign: 'center',
+    fontFamily: 'Nunito',
   },
   commissionButton: {
     marginTop: 12,
@@ -658,6 +673,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
+    fontFamily: 'Nunito',
   },
 
   cartButton: {
@@ -685,6 +701,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
+    fontFamily: 'Nunito',
   },
   createCommissionButton: {
     backgroundColor: '#e1f3f2',
@@ -697,6 +714,7 @@ const styles = StyleSheet.create({
   createCommissionButtonText: {
     color: '#70c0b7',
     fontWeight: 'bold',
+    fontFamily: 'Nunito',
   },
   listContent: {
     paddingBottom: 80,

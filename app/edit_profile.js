@@ -191,6 +191,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 30,
     color: '#70c0b7',
+    fontFamily: 'Nunito',
   },
   avatarSection: {
     width: 90,
@@ -215,11 +216,13 @@ const styles = StyleSheet.create({
       2 :
         windowWidth < 769 ? 
           170 : 220,
+    fontFamily: 'Nunito',
   },
   bioInput: {
     height: 80,
     textAlignVertical: 'top',
     paddingTop: 12,
+    fontFamily: 'Nunito',
   },
   saveButton: {
     height: 45,
@@ -243,5 +246,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     letterSpacing: 0.5,
     textAlign: 'center',
+    fontFamily: 'Nunito',
   },
 });

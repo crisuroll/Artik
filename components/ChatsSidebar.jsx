@@ -107,9 +107,9 @@ export default function DesktopDmSidebar() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16, marginHorizontal: 30 },
-  header: { fontWeight: 'bold', fontSize: 17, marginVertical: 8, color: '#70c0b7' },
+  header: { fontWeight: 'bold', fontSize: 17, marginVertical: 8, color: '#70c0b7', fontFamily: 'Nunito', },
   item: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
   avatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#ccc', marginRight: 10 },
-  username: { fontWeight: 'bold' },
-  empty: { color: '#888', textAlign: 'center', marginVertical: 8 },
+  username: { fontWeight: 'bold', fontFamily: 'Nunito', },
+  empty: { color: '#888', textAlign: 'center', marginVertical: 8, fontFamily: 'Nunito', },
 });

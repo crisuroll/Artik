@@ -203,11 +203,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: 16,
+    fontFamily: 'Nunito',
   },
   textArea: {
     height: 80,
     textAlignVertical: 'top',
     paddingTop: 12,
+    fontFamily: 'Nunito',
   },
   label: {
     fontWeight: 'bold',
@@ -215,6 +217,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     fontSize: 16,
     color: '#70c0b7',
+    fontFamily: 'Nunito',
   },
   imagePicker: {
     borderRadius: 20,
@@ -241,6 +244,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
     fontSize: 18,
+    fontFamily: 'Nunito',
   },
   postButtonDisabled: {
     opacity: 0.6,

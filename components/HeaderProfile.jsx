@@ -25,6 +25,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 15,
     paddingHorizontal: 20,
+    fontFamily: 'Nunito',
   },
   profileButton: {
     borderRadius: 30,

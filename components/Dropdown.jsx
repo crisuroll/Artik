@@ -128,6 +128,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
     opacity: 0.9,
+    fontFamily: 'Nunito',
   },
   options: {
     position: "absolute",
@@ -136,7 +137,7 @@ const styles = StyleSheet.create({
     maxHeight: 250,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25, // igual que el botón
+    shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
     overflow: "hidden",
@@ -149,6 +150,7 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: 15,
     color: "#333",
+    fontFamily: 'Nunito',
   },
   separator: {
     height: 1,

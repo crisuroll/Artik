@@ -565,6 +565,7 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     alignSelf: "center",
     color: "#222",
+    fontFamily: 'Nunito',
   },
   summaryCard: {
     backgroundColor: "#fff",
@@ -575,6 +576,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.07,
     shadowRadius: 8,
     elevation: 2,
+    fontFamily: 'Nunito',
   },
   summaryRow: {
     flexDirection: "row",
@@ -584,10 +586,12 @@ const styles = StyleSheet.create({
   summaryLabel: {
     fontSize: 16,
     color: "#444",
+    fontFamily: 'Nunito',
   },
   summaryValue: {
     fontSize: 16,
     color: "#444",
+    fontFamily: 'Nunito',
   },
   summaryTotalRow: {
     flexDirection: "row",
@@ -596,16 +600,19 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#eee",
     paddingTop: 10,
+    fontFamily: 'Nunito',
   },
   summaryTotalLabel: {
     fontSize: 18,
     fontWeight: "bold",
     color: "#70c0b7",
+    fontFamily: 'Nunito',
   },
   summaryTotalValue: {
     fontSize: 18,
     fontWeight: "bold",
     color: "#70c0b7",
+    fontFamily: 'Nunito',
   },
   sectionTitle: {
     fontWeight: "bold",
@@ -613,6 +620,7 @@ const styles = StyleSheet.create({
     marginTop: 18,
     marginBottom: 8,
     color: "#70c0b7",
+    fontFamily: 'Nunito',
   },
   productCard: {
     flexDirection: "row",
@@ -637,21 +645,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#222",
+    fontFamily: 'Nunito',
   },
   productDesc: {
     fontSize: 14,
     color: "#666",
     marginBottom: 2,
+    fontFamily: 'Nunito',
   },
   productQty: {
     fontSize: 14,
     color: "#888",
+    fontFamily: 'Nunito',
   },
   productPrice: {
     fontSize: 16,
     fontWeight: "bold",
     color: "#70c0b7",
     marginLeft: 8,
+    fontFamily: 'Nunito',
   },
   infoCard: {
     backgroundColor: "#fff",
@@ -662,6 +674,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.03,
     shadowRadius: 4,
     elevation: 1,
+    fontFamily: 'Nunito',
   },
   infoBold: {
     fontWeight: "bold",
@@ -683,6 +696,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     letterSpacing: 1,
+    fontFamily: 'Nunito',
   },
   empty: {
     textAlign: "center",
@@ -690,6 +704,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: 20,
     marginBottom: 20,
+    fontFamily: 'Nunito',
   },
   editBtn: {
     marginTop: 8,
@@ -703,6 +718,7 @@ const styles = StyleSheet.create({
     color: "#70c0b7",
     fontWeight: "bold",
     fontSize: 14,
+    fontFamily: 'Nunito',
   },
   modalOverlay: {
     flex: 1,
@@ -723,6 +739,7 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     color: "#222",
     textAlign: "center",
+    fontFamily: 'Nunito',
   },
   input: {
     borderWidth: 1,
@@ -732,6 +749,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     fontSize: 16,
     backgroundColor: "#fafafa",
+    fontFamily: 'Nunito',
   },
   modalBtnRow: {
     flexDirection: "row",
@@ -748,6 +766,7 @@ const styles = StyleSheet.create({
   cancelBtnText: {
     color: "#888",
     fontWeight: "bold",
+    fontFamily: 'Nunito',
   },
   saveBtn: {
     backgroundColor: "#007b7f",
@@ -758,6 +777,7 @@ const styles = StyleSheet.create({
   saveBtnText: {
     color: "#fff",
     fontWeight: "bold",
+    fontFamily: 'Nunito',
   },
   paymentOption: {
     paddingVertical: 14,
@@ -778,5 +798,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#007b7f",
     fontWeight: "500",
+    fontFamily: 'Nunito',
   },
 });

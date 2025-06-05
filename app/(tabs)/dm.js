@@ -43,7 +43,6 @@ export default function DM() {
             commissions[key] = {
               user: otherUser,
               lastMessage: msg.content,
-              // Puedes añadir más datos de comisión aquí si quieres
             };
           }
         } else {
@@ -84,8 +83,7 @@ export default function DM() {
             )}
             <View>
               <Text style={styles.username}>{item.user.username}</Text>
-              {/* Aquí puedes mostrar datos de la comisión */}
-              <Text style={{ color: '#007b7f', fontWeight: 'bold' }}>Comisión</Text>
+              <Text style={{ color: '#007b7f', fontWeight: 'bold', fontFamily: 'Nunito', }}>Comisión</Text>
               <Text>{item.lastMessage}</Text>
             </View>
           </TouchableOpacity>
@@ -110,7 +108,7 @@ export default function DM() {
             </View>
           </TouchableOpacity>
         )}
-        ListEmptyComponent={<Text style={{ color: '#888', textAlign: 'center' }}>No tienes chats normales</Text>}
+        ListEmptyComponent={<Text style={{ color: '#888', textAlign: 'center', fontFamily: 'Nunito', }}>No tienes chats normales</Text>}
       />
     </View>
   );
@@ -118,10 +116,10 @@ export default function DM() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20 },
-  header: { fontSize: 20, fontWeight: 'bold', marginVertical: 10 },
+  header: { fontSize: 20, fontWeight: 'bold', marginVertical: 10, fontFamily: 'Nunito', },
   item: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10 },
   avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#ccc', marginRight: 10 },
-  username: { fontWeight: 'bold' },
+  username: { fontWeight: 'bold', fontFamily: 'Nunito', },
   offerBtn: { backgroundColor: '#007b7f', borderRadius: 10, padding: 6, marginRight: 8 },
   buyBtn: { backgroundColor: '#2ecc71', borderRadius: 10, padding: 6 },
 });

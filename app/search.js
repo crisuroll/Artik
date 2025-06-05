@@ -113,6 +113,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
     color: '#70c0b1',
+    fontFamily: 'Nunito',
   },
   searchBar: {
     flexDirection: 'row',
@@ -126,6 +127,7 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     paddingHorizontal: 20,
     elevation: 5,
+    fontFamily: 'Nunito',
   },
   listContent: {
     paddingBottom: 80,
@@ -135,6 +137,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#888',
     marginTop: 20,
+    fontFamily: 'Nunito',
   },
   sectionHeader: {
     fontSize: 18,
@@ -142,6 +145,7 @@ const styles = StyleSheet.create({
     color: '#70c0b1',
     marginTop: 20,
     marginBottom: 5,
+    fontFamily: 'Nunito',
   },
   userItem: {
     flexDirection: 'row',
@@ -161,10 +165,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
     marginRight: 8,
+    fontFamily: 'Nunito',
   },
   userUsername: {
     color: '#888',
     fontSize: 14,
+    fontFamily: 'Nunito',
   },
 });
 

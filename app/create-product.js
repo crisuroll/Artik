@@ -97,7 +97,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
-    color: '#70c0b7'
+    color: '#70c0b7',
+    fontFamily: 'Nunito',
   },
   createButton: { 
     height: 45,
@@ -117,6 +118,7 @@ const styles = StyleSheet.create({
   createButtonText: { 
     fontWeight: 'bold',
     color: 'white',
+    fontFamily: 'Nunito',
   },
   createButtonDisabled: {
     opacity: 0.6,

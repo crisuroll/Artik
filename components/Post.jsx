@@ -89,6 +89,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#70c0b7',
+    fontFamily: 'Nunito',
   },
   imageWrapper: {
     position: 'relative',
@@ -112,6 +113,7 @@ const styles = StyleSheet.create({
   menuText: {
     fontSize: 18,
     color: '#333',
+    fontFamily: 'Nunito',
   },
   menuContainer: {
     position: 'absolute',
@@ -139,6 +141,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: '#333',
     fontWeight: 'bold',
+    fontFamily: 'Nunito',
   },
   interactionContainer: {
     flexDirection: 'row',

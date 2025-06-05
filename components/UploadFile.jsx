@@ -242,6 +242,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#70c0b7',
     marginBottom: 10,
+    fontFamily: 'Nunito',
   },
 });
 

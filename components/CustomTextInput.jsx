@@ -43,10 +43,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
+    fontFamily: 'Nunito',
   },
   multiline: {
     minHeight: 80,
     textAlignVertical: 'top',
     paddingTop: 12,
+    fontFamily: 'Nunito',
   },
 });

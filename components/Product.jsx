@@ -36,19 +36,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
     marginBottom: 4,
+    fontFamily: 'Nunito',
   },
   productDesc: {
     color: '#555',
     marginBottom: 4,
     textAlign: 'center',
+    fontFamily: 'Nunito',
   },
   productPrice: {
     color: '#007b7f',
     fontWeight: 'bold',
     marginBottom: 2,
+    fontFamily: 'Nunito',
   },
   productStock: {
     color: '#888',
     fontSize: 13,
+    fontFamily: 'Nunito',
   },
 });

@@ -96,6 +96,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
     color: '#70c0b1',
+    fontFamily: 'Nunito',
   },
   listContent: {
     paddingBottom: 80,

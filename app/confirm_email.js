@@ -43,13 +43,14 @@ export default function ConfirmEmail() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
-  text: { fontSize: 18, textAlign: 'center', marginBottom: 32 },
+  text: { fontSize: 18, textAlign: 'center', marginBottom: 32, fontFamily: 'Nunito', },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 30,
-    color: '#70c0b7'
+    color: '#70c0b7',
+    fontFamily: 'Nunito',
   },
   button: {
     height: 45,
@@ -67,6 +68,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: '600'
+    fontWeight: '600',
+    fontFamily: 'Nunito',
   },
 });

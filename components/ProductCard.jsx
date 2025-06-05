@@ -72,6 +72,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 15,
     lineHeight: 22,
     fontWeight: 'bold',
+    fontFamily: 'Nunito',
   },
   productPrice: {
     fontSize: 15,
@@ -79,6 +80,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     color: '#70c0b7',
     fontWeight: '600',
+    fontFamily: 'Nunito',
   },
 });
 
