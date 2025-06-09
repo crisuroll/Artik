@@ -2,6 +2,9 @@
 # 🖼️ Artik – Social Network for Artists
 
 **Artik** is a cross-platform application developed to work as a social network designed to protect, showcase, and monetize art in a safe and ethical environment—especially against the growing threat of generative AI.
+<p align="center">
+  <img src="https://ovbhqtvacxgkarasaakr.supabase.co/storage/v1/object/public/misc//ARTIK%20LOGO.png" alt="Artik Logo" width="400"/>
+</p>
 
 ## 🎨 What is Artik?
 
